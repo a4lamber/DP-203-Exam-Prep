@@ -17,7 +17,7 @@ In this section, you will understand
 
 
 
-**Azure storage account**分成两个tier,提供如下的服务, for [more](https://www.dremio.com/subsurface/azure-data-lake-services/).
+**Azure storage account**分成两个tier,提供如下的服务, for [more](https://www.dremio.com/subsurface/azure-data-lake-services/). 
 
 | -             | standard tier        | Premium tier                                                 |
 | ------------- | -------------------- | ------------------------------------------------------------ |
@@ -43,6 +43,8 @@ In azure,
   - DL
 
 
+
+官方reference, [请看这里](https://learn.microsoft.com/en-us/azure/storage/common/storage-account-overview).
 
 ## Host a SQL database in Azure
 
@@ -193,7 +195,139 @@ For more reading, please refer [here](https://towardsdatascience.com/big-data-fi
 
 
 
+## **LAB** Create a Azure Data Lake Storage Gen 2 (ADLS)
 
+For more details, please refer to the lab directory.
+
+
+
+> Note: ADLS2 is built on top of storage account service. Create a storage account as usual and click [hierarchical namespace](https://learn.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-namespace) in advanced setting. That's it! 
+
+
+
+
+
+## POWER BI for viewing data
+
+
+
+
+
+
+
+## Access Key
+
+Outline:
+
+- download Microsoft Azure Storage Explorer
+- Access your datalake or account via 
+  - subscription
+  - account
+
+
+
+You can navigate your self to the figure below via
+
+- click the storage account which you enabled ADLS2
+- click access key at side bar
+- you will have **storage account name** and **key**. You could use these two as credentials to access your data
+
+![Screenshot 2022-11-20 at 09.19.25](/Users/yixiangzhang/Documents/DP_203/assets/accesskey.png)
+
+
+
+
+
+
+
+## Shared Access Signature
+
+
+
+Shared Access Signature (SAS) is another way to give access to other uses to access your data lake. 你如果想有权限到某个数据湖或者数据库，你可以通过登陆subscription，来获得所有databases under the subscriptions的权限，或者你可以直接连某个数据库，通过一下的三种方式(如下图)
+
+
+
+![Screenshot 2022-11-20 at 11.05.01](/Users/yixiangzhang/Documents/DP_203/assets/sas.png)
+
+通过不同方式连接的数据库的括号内，例如`datalake0329`你可以看到后面的括号里，是一些对这个数据库的描述 `datalake0329(SAS, ADLS Gen2)` 就是指connected via SAS.
+
+![Screenshot 2022-11-20 at 11.06.22](/Users/yixiangzhang/Documents/DP_203/assets/sas-connected-lake.png)
+
+
+
+## Redundancy, Access Tier, Lifecycle policy and Costing
+
+这一章主要讲redundancy, access tier, lifecycle policy and costing for azure storage account service.
+
+
+
+### Redundancy
+
+- Locally-redundant storage
+  - 在同一个data center, 做三个copy
+  - 预防：protect against server rack or driver failures
+- Zone-redundant storage
+  - 数据 is replicated synchronously across three Azure availability zones
+  - 预防: data-center failure
+- Geo-redundant storage
+  - 包括了locally-redundant storage服务，顺便再另一个region做一个replication. (比如你prime location在central US, 那么East US 2). 传输用LRS
+  - Cost分两部分: 你数据量x2, 以及传输的费用
+- Read-access geo-redundant storage
+  - 区别是，前者只有在primary center failure, 才能access到备份，但read-access任何时候都能access.
+- Geo-zone-redudant storage
+- Read access geo-zone redundant storage
+
+
+
+
+
+### Access Tier
+
+> Under `advanced setting`, 是一个blob level的功能，选择Hot or Cool or Archive
+
+
+
+Access tier:
+
+- Hot
+- Cool (30)
+- Archive (180)
+
+
+
+而收费标准分这样几块
+
+- $$ per GB for different access tiers
+- $$ for operations such as read, write
+
+这个概念和定期存款很像，90-day, 180-day, 360-day, 没到固定日期，那就要交额外的钱 (early deletion fee)。
+
+
+
+### Lifecycle Policy
+
+对于大型公司来说，有millions of files, 由于access tier是file or blob level, 人工来做或者自己写script来把不常用的blob, based on last accessed day, change to archive or cool tier.这时候你可以用lifecycle management来处理这个事情.
+
+Lifecycle management is just an automated way of changing files for one access tier to another.
+
+
+
+ 
+
+
+### Costing
+
+可以点击subscription然后做cost analysis and management, 可以设置budget来提醒你目前的收费标准
+
+
+
+## Reference
+
+- [azure data lake storage gen 2 ms learning documentation](https://learn.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-introduction)
+
+- 
+- 
 
 
 
