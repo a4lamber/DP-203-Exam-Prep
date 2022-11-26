@@ -10,6 +10,10 @@
 
 [toc]
 
+# Azure synapse基本介绍
+
+
+
 
 
 ## Azure Synapse Analytics
@@ -390,7 +394,7 @@ Facts table储存信息，dimension tables give context to it so we can understa
 
 ### Star Schema VS Snowflake Schema
 
-
+[MS Learn](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql-data-warehouse/sql-data-warehouse-tables-overview)
 
 
 
@@ -401,6 +405,186 @@ Facts table储存信息，dimension tables give context to it so we can understa
 见lab folder for detail;
 
 
+
+
+
+## Dedicated SQL pool architecture
+
+有60多种table distribution在dedicated SQL pool (data warehouse(~PB, bulk insert)), 由于数据量和OLTP的数据库(~TB, many inserts and deletes)的管理的数据量不一样和读写规律不一样，自然数据的储存也需要一些优化方式。
+
+
+
+```mermaid
+flowchart TD
+	users -->|query| a(Control Node)
+	a --> b(compute node) & c(compute node) & d(compute node)
+ 	b & c & d ---> e(data layer)
+
+```
+
+>  什么是distributed table? A distributed table appears as a single table, but the rows are actually stored across 60 distributions. The rows are distributed with a **hash** or **round-robin** algorithm.
+
+
+
+## Different table types
+
+不同的distribution其实就是different ways to partition data in your data warehouse.
+
+
+
+这里介绍三种distribution, example data in datawarehouse如下
+
+| Id   | Course | Category     |
+| ---- | ------ | ------------ |
+| 1    | DP-203 | Data         |
+| 2    | AZ-304 | Architecture |
+| 3    | AZ-303 | Architecture |
+
+
+
+### Round-robin distributed tables
+
+One row for each compute node, 这样的分配数据方法improves loading speed. 这也同时是default type with the symbol `dbo.dimCustomer`.
+
+```mermaid
+flowchart TD
+	a(Control Node) --> b(compute node) & c(compute node) & d(compute node)
+	subgraph Round-robin distributed tables
+ 	b --> 1,DP-203,Data
+ 	c --> 2,AZ-304,Architecture
+ 	d --> 3,AZ-303,Architecture
+	end
+```
+
+> `DBCC PDW_SHOWSPACEUSED('[DBO].[SalesFact]')` 你可以用这条command, 来看table的distribution
+
+在你的dedicated SQL pool中，你run this command will pop up, header row的意义分别是:
+
+| Name            | Description                                                  |
+| --------------- | ------------------------------------------------------------ |
+| ROWS            |                                                              |
+| RESERVED_SPACE  |                                                              |
+| DATA_SPACE      |                                                              |
+| INDEX_SPACE     |                                                              |
+| UNUSED_SPACE    |                                                              |
+| PDW_NODE_ID     | 在哪个node里储存，由于我们DWU(data warehouse unit)选的很小，估计就分配给我们一个资源，所以都是1 |
+| DISTRIBUTION_ID |                                                              |
+
+
+
+```markdown
+ROWS RESERVED_SPACE DATA_SAPCE INDEX_SPACE UNUSED_SPACE PDW_NODE_ID DISTRIBUTION_ID
+2397	272	176	16	80	1	1
+2397	272	176	16	80	1	2
+3196	336	224	16	96	1	3
+2809	272	200	16	56	1	4
+2397	272	176	16	80	1	5
+2397	272	176	16	80	1	6
+2397	272	176	16	80	1	7
+3196	336	224	16	96	1	8
+3995	400	280	16	104	1	9
+3608	336	256	16	64	1	10
+2809	272	200	16	56	1	11
+2397	272	176	16	80	1	12
+3196	336	224	16	96	1	13
+3196	336	224	16	96	1	14
+2809	272	200	16	56	1	15
+2397	272	176	16	80	1	16
+2397	272	176	16	80	1	17
+3196	336	224	16	96	1	18
+3714	336	256	16	64	1	19
+2809	272	200	16	56	1	20
+2010	272	152	16	104	1	21
+2397	272	176	16	80	1	22
+2397	272	176	16	80	1	23
+2397	272	176	16	80	1	24
+2010	272	152	16	104	1	25
+1598	208	120	16	72	1	26
+1598	208	120	16	72	1	27
+1598	208	120	16	72	1	28
+1598	208	120	16	72	1	29
+1598	208	120	16	72	1	30
+1211	208	96	16	96	1	31
+799	144	72	16	56	1	32
+799	144	72	16	56	1	33
+412	144	48	16	80	1	34
+799	144	72	16	56	1	35
+799	144	72	16	56	1	36
+799	144	72	16	56	1	37
+799	144	72	16	56	1	38
+799	144	72	16	56	1	39
+799	144	72	16	56	1	40
+799	144	72	16	56	1	41
+1598	208	120	16	72	1	42
+1598	208	120	16	72	1	43
+1598	208	120	16	72	1	44
+1598	208	120	16	72	1	45
+1598	208	120	16	72	1	46
+1211	208	96	16	96	1	47
+1598	208	120	16	72	1	48
+1598	208	120	16	72	1	49
+1598	208	120	16	72	1	50
+1598	208	120	16	72	1	51
+2397	272	176	16	80	1	52
+2397	272	176	16	80	1	53
+2010	272	152	16	104	1	54
+1598	208	120	16	72	1	55
+1598	208	120	16	72	1	56
+1598	208	120	16	72	1	57
+2397	272	176	16	80	1	58
+3196	336	224	16	96	1	59
+2809	272	200	16	56	1	60
+```
+
+ 接下来你run这个command, 由于SQL是declarative language, 后面的是实际运行的方法;
+
+```sql
+-- If you execute the below query
+SELECT 
+		[CustomerID],
+    COUNT([CustomerID]) AS [COUNT] 
+FROM 
+		[dbo].[SalesFact]
+GROUP BY [CustomerID]
+ORDER BY [CustomerID]
+
+```
+
+
+
+
+
+### Hash-distributed data
+
+Choose category column as the `hash value` on each compute node
+
+
+
+```mermaid
+flowchart TD
+	a(Control Node) --> b(compute node) & c(compute node) & d(compute node)
+	subgraph Hash-distributed data
+ 	b --> 1,DP-203,Data\n
+ 	c --> 2,AZ-304,Architecture\n3,AZ-303,Architecture
+ 	d
+ 	end
+```
+
+
+
+### Replicated tables
+
+A full copy of the table is cached on each compute node.
+
+```mermaid
+flowchart TD
+	a(Control Node) --> b(compute node) & c(compute node) & d(compute node)
+	subgraph Replicated tables
+ 	b --> e(1,DP-203,Data\n2,AZ-304,Architecture\n3,AZ-303,Architecture)
+ 	c --> f(1,DP-203,Data\n2,AZ-304,Architecture\n3,AZ-303,Architecture)
+ 	d --> g(1,DP-203,Data\n2,AZ-304,Architecture\n3,AZ-303,Architecture)
+ 	end
+```
 
 
 
