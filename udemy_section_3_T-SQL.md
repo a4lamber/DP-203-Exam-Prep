@@ -16,7 +16,17 @@ Pretty straightforward since it's just one dialect of SQL.
 
 
 
-## SQL
+## SQL-database
+
+
+
+Pretty familar with those concepts. Gonna move to next section.
+
+
+
+
+
+
 
 
 
