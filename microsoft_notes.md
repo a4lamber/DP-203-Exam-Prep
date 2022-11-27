@@ -14,7 +14,7 @@ Now, let's use a check list to do this
 - [ ] Chapter 6
 - [ ] Chapter 7
 - [ ] Chapter 8
-- [x] Chapter 9 Large-Scale Data Processing with ADLS Gen2
+- [x] Chapter 9 Large-Scale Data Processing with ADLS Gen2 (11/26)
 - [ ] Chapter 10 
 
 **Table of contents:**
@@ -212,4 +212,275 @@ Along with RBAC, 同时也支持access control lists (ACLs) that are POSIX-compl
 
 
 # Chapter 10: Implement a Data Streaming Solution with Azure Streaming Analytics x 3
+
+Learn the concepts of event processing and streaming data, 基本都是time-series data, 可以好好利用起来。
+
+## Module 1 Get started with Azure Stream Analytics
+
+
+
+### What is data streaming
+
+streaming data主要来源于IoT和connected applications, some typical examples includes:
+
+- Online stores analyzing real-time clickstream data to provide product recommendations to consumers as they browse the website
+- Manufacturing facilities using telemetry data from IoT sensors to remotely monitor high-value assets
+- Credit card transcations from point-of-sale systems being scrutinized in real-time to detect and prevent potentially fraudulent activities
+
+
+
+Stream data的主要价值为
+
+- Continuously analyzing data to report issues or trends
+- Understanding component or system behavior under various condtions to help plan future enhancements
+- Triggering specific actions or alerts when certain events occur or thresholds are exceeded
+
+主要流程如下 
+
+![](https://learn.microsoft.com/en-us/training/data-ai-cert/introduction-to-data-streaming/media/stream-processing.png)
+
+
+
+### Azure Stream Analytics介绍
+
+Azure stream analytics是一个event processing and analysis of streaming data, 属于PaaS
+
+```mermaid
+flowchart LR
+		a(Azure event hub) & b(Azure IoT Hub) & c(Azure storage blob) --> d(Azure Stream Analytics)
+		d --> e(ADLS Gen2) & f(Synapse Analytics) & g(Azure Functions) & h(Azure event hub) & i(Power BI)
+```
+
+怎么用这个platform as a service呢, 看下面流程图
+
+```mermaid
+flowchart TD
+		b(Stream Analytics Job)
+		
+		a(Azur Stream Analytics) --> d{Resource-intensive\n&complex streaming ?}
+    d --> |No,create|b
+    d --> |yes,create|e(Stream Analysis Cluster)
+		b --> input & output & c(structured SQL Query)
+		
+```
+
+
+
+比如现在让你写query, 将weather-event中，<0度的数据写进`cold-temps`中去,
+
+```sql
+SELECT 
+		event_time, 
+		weather_station, 
+		temperature
+INTO 
+		cold-temps
+FROM 
+		weather-events TIMESTAMP BY event_time
+WHERE temperature < 0
+```
+
+如果你上游input是IoT Hub或者event hub, 则会自动生成一个`field` to define the arrival time of the event in the queue, 也可以用clause `TIMESTAMP BY`来定义arrival time of the event.
+
+> Field (default) 也可以被TIMESTAMP BY来overwrite
+
+
+
+### Understand Window Functions
+
+Stream processing的目的是aggregate events into temporal intervals, or windows, 比如计算每分钟有多少条推特post, 或者每小时平均降雨量。Azure stream analytics支持五种temporal windowing functions, enable you to define temporal intervals into which data is aggregated in a query.
+
+```mermaid
+flowchart TD
+		a(temporal window functions) --> tumbling & hopping & sliding & session & snapshot
+```
+
+> 小贴士: 这里的winfow function与SQL中的`count() over(partition by xxx order by xxx)`
+
+
+
+#### Tumbling
+
+Tumbling window function segments data stream into a contignuous series of fixed-size, non-overlapping time segments. The schematics is illustrated in the figure below
+
+![](https://learn.microsoft.com/en-us/training/data-ai-cert/introduction-to-data-streaming/media/tumble-window.png)
+
+可以注意到，每一个time segment时长一致且不重复;
+
+现在我们看下面这个例子，
+
+```sql
+SELECT 
+		EventName,
+    COUNT(*) AS Count
+FROM 
+		EventStream TIMESTAMP BY EventTimestamp
+GROUP BY EventName, TumblingWindow(minute, 10)
+```
+
+clause `TumblingWindow(time unit,size)`与clause `group by`连用，计算时间是default设定是左开右闭区间 (12:00am, 12:10am], 但可以通过`Offset` parameter来调.
+
+
+
+#### Hopping
+
+Hopping window functions实际上是moving average的generalized case. Hopping window functions, 代表着scheduled overlapping windows, jumping forward in time by a fixed period. 流程图如下:
+
+![](https://learn.microsoft.com/en-us/training/data-ai-cert/introduction-to-data-streaming/media/hop-window.png)
+
+那我们再看一下同样的例子,
+
+```sql
+-- Count the number of times each event occurs every 10 seconds
+SELECT 
+		EventName, 
+		COUNT(*) AS Count
+INTO 
+		OutputData
+FROM EventStream TIMESTAMP BY EventTimestamp
+GROUP BY EventName, HoppingWindow(second, 10, 5)
+```
+
+可以看到这个clause `HoppingWindow(time unit, size, hopsize)` 和`group by` 连用
+
+实际上HoppingWindow是TumblingWindow的一个general case:
+
+`HoppingWindow(minute,10,10)` = `TumblingWindow(minute,10)` 
+
+同时某个参数的每10秒发生的moving average可以用aggregate function + hopping window来求；
+
+
+
+#### Sliding
+
+Azure Stream Analytics定义sliding window为, 一个event enter or exit你的temporal interval.  也就是说，每个window的生成条件是，一个event进入或者离开定长的时间窗口, 如下图所示
+
+![](https://learn.microsoft.com/en-us/training/data-ai-cert/introduction-to-data-streaming/media/slide-window.png)
+
+Example: find events that have happened more than three times in the last 10 mins
+
+```sql
+SELECT
+    DateAdd(minute,-5,System.Timestamp()) AS WinStartTime,
+    System.Timestamp() AS WinEndTime,
+    EventName,
+    COUNT(*) AS Count
+INTO OutputData
+FROM EventStream TIMESTAMP BY EventTimestamp
+GROUP BY EventName, SlidingWindow(minute, 10)
+HAVING COUNT(*) > 3
+```
+
+
+
+#### Session
+
+session window function 会做:
+
+- Cluster events together that arrive at similar times
+- Filtering out periods of time where there is no data
+
+`SessionWindow()` 有three primary parameters
+
+-  timeout
+-  maximum duration
+- Partitioning key (optional)
+
+The schematics is shown below,
+
+![](https://learn.microsoft.com/en-us/training/data-ai-cert/introduction-to-data-streaming/media/session-window.png)
+
+
+
+下面的例子 measures user session length by creating a `SessionWindow` over clickstream data with a `timeoutsize` of 5 minutes and a `maximumdurationsize` of 60 mins.
+
+```sql
+-- Output the count of events that occur within 2 minutes of each other with a maximum duration of 60 minutes.
+SELECT
+    Username,
+    MIN(ClickTime) AS WindowStart,
+    System.Timestamp() AS WindowEnd,
+    DATEDIFF(s, MIN(ClickTime), System.Timestamp()) AS DurationInSeconds
+INTO OutputData
+FROM Clickstream TIMESTAMP BY ClickTime
+GROUP BY Username, SessionWindow(minute, 2, 60) OVER (PARTITION BY Username)
+```
+
+换通俗点讲, 5分钟没event进来就close window了 (filter out了)，或者超过window总时长超过60mins, 也close window了。
+
+ 
+
+#### Snapshot
+
+**Snapshot** windows groups events by identical timestamp values. 直接连用`group by`和`System.Timestamp()`即可
+
+```sql
+SELECT 
+		EventName, 
+		COUNT(*) AS Count
+INTO OutputData
+FROM EventStream TIMESTAMP BY EventTimestamp
+GROUP BY EventName, System.Timestamp()
+```
+
+具体的flowchart,
+
+![](https://learn.microsoft.com/en-us/training/data-ai-cert/introduction-to-data-streaming/media/snapshot-window.png)
+
+
+
+
+
+
+
+
+
+### Exercise
+
+略, 需要花15分钟。
+
+
+
+### Summary
+
+Azure Stream Analytics is a platform-as-a-service (PaaS) that you can use to process a perpetual stream of data for real-time reporting, automated action or integration into an enterprise analytical solution.
+
+You learned so far
+
+- Understand data streams
+- Understand event processing
+- Get started with Azure Stream Analytics
+
+For more deatils, refers the [Azure Stream Analytics Documentation](https://learn.microsoft.com/en-us/azure/stream-analytics/)
+
+
+
+## Module 2 Enable reliable messaging for Big Data applications using Azure Event Hub
+
+Azure Event Hub, a big data streaming platform and event ingestion service, it can receive and process millions of events per second.
+
+In this module, you will:
+
+- Create an event hub using the Azure CLI
+- Configure apps to send or receive messages through an event hub
+- Evaluate your even hub performance using the Azure portal
+
+
+
+## Create an Event Hub using the Azure CLI
+
+Event hub acts as a front door for an event pipeline, to receive incoming data and stores this data until processing resources are available.
+
+![](https://learn.microsoft.com/en-us/training/modules/enable-reliable-messaging-for-big-data-apps-using-event-hubs/media/2-event-hub-overview.png)
+
+流程图如上,一些注释
+
+- `Publisher`: an entity that sends data to event hub
+- `Subscriber (Consumer)`: an entity that reads data from event hub
+
+- 和staging area的功能很类似，实际上是为了防止$r_{production} \gg r_{consumption}=\frac{\partial C}{\partial t}$ , 做了一个buffer, 可以短期储存或者处理
+- `Event`: a small packet of information (也叫datagram) that contains a notification, 可以individually publish, 也可以形成一个mini-batch后publish, 但有个限制条件single publication 不能大于1 MB (be is individual or batch)
+-  
+
+## Module 3 Ingest data streams with Azure Stream Analytics
 
