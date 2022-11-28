@@ -7,7 +7,7 @@ Here are the organized notes from the official website that is available [here](
 Now, let's use a check list to do this
 
 - [ ] Chapter 1
-- [ ] Chapter 2
+- [x] Chapter 2 Store data in Azure (11/26)
 - [ ] Chapter 3
 - [ ] Chapter 4
 - [ ] Chapter 5
@@ -15,7 +15,7 @@ Now, let's use a check list to do this
 - [ ] Chapter 7
 - [ ] Chapter 8
 - [x] Chapter 9 Large-Scale Data Processing with ADLS Gen2 (11/26)
-- [ ] Chapter 10 
+- [ ] Chapter 10 Implement a Data Streaming solution with Azure Streaming Analytics
 
 **Table of contents:**
 
@@ -34,6 +34,153 @@ some basics.
 
 
 # Chapter 2: Store data in Azure x5
+
+
+
+## Module 1 Choose a data storage approach in Azure
+
+这一个module有些考点的，比较了Azure SQL Database, Azure Cosmos DB, 以及怎么选
+
+In this module, you will learn:
+
+- classify you data as structured, semi-structured or unstructured
+- determine how your data will be used
+- Determine whether your data requires transactions
+
+### Classify your data
+
+先比较数据库:
+
+- Azure SQL database for structured data
+- Azure Cosmos DB for both SQL and noSQL
+
+
+
+接下来讲老生常谈的几种类型:
+
+- structured
+- semi-structured
+  - serialization languate: XML, JSON, YAML
+- unstructured
+  - Media files
+    - photos, videos, audio
+  - Microsoft 365 files, `.pptx` and `.word`
+  - Text files
+  - log files
+
+
+
+### NoSQL database
+
+- No SQL database的三类 (Azure Cosmo DB)
+  - document
+    - stores `markup language` json, xml
+  - Key-value
+    - stored in key-value pair
+    - use `get`,`put`or `delete`
+  - Graph database
+    - 链式储存
+
+
+
+### Determine operational needs
+
+
+
+
+
+### What is a transaction
+
+A `transaction` is a logical group of database operations that execute together. Transactions often are defined by a set of four requirements called `ACID guarantees`.
+
+问自己: will a change to one piece of data in your dataset affect another piece of data? 
+
+
+
+
+
+### OLTP vs OLAP
+
+
+
+
+
+
+
+
+
+### Reference
+
+里面有几篇文章挺不错的，可以读一下
+
+- [Select an Azure data store for your application](https://learn.microsoft.com/en-us/azure/architecture/guide/technology-choices/data-store-decision-tree)
+- [Criteria for choosing a data store](https://learn.microsoft.com/en-us/azure/architecture/guide/technology-choices/data-store-considerations)
+- [Non-relational data and NoSQL in Azure](https://learn.microsoft.com/en-us/azure/architecture/data-guide/big-data/non-relational-data)
+- [Online transaction processing and Azure](https://learn.microsoft.com/en-us/azure/architecture/data-guide/relational-data/online-transaction-processing)
+- [Online analytical processing and Azure](https://learn.microsoft.com/en-us/azure/architecture/data-guide/relational-data/online-analytical-processing)
+
+
+
+## Module 2 Create an Azure Storage account
+
+略
+
+
+
+
+
+## Module 3 Connect an app to Azure storage
+
+略
+
+
+
+## Module 4 Secure your Azure Storage account
+
+有些考点，和chapter 9 module 3重复了
+
+
+
+
+
+## Module 5 Store application data with Azure Blob storage
+
+详细了解一下blob storage, 因为经常考到three blob types, 可以作为stream analytics的input (for static data).
+
+应用角度，比如你是游戏公司程序员，游戏提供功能可以支持玩家自己游戏内截图和视频，玩家可以保存杀死boss时候的images 或者最后击杀的视频，之后直接在游戏内观看，就可以用blob.
+
+### What are blobs?
+
+- 不能query  
+
+- 
+
+
+
+
+
+### Blob, container, storage account
+
+- blob住在container里，container住在storage account
+- container和storage account都是flat, 不能无限套娃
+
+
+
+### Blob types♥️
+
+This is what you are gonna be tested on, it has three types:
+
+- `block blob`: are composed of blocks of different sizes that can be uploaded independently and in parallel. Writing to a block blob involves uploading data to blocks and commiting them to the blob. 
+- `Append blob`:are specialized block blobs that s**upport only appending** new data (not updating, or deleting existing data), but they are very efficient at it. Great for scenarios like **storing logs or writing streamed data.**
+  - 可以用来存log, 因为log只会越来越多
+  - 或者streaming solution + ML 出口的reports，也可以append.
+- `Page blob`: designed for scenarios that involve random-access reads and writes. Page blobs are used to **store the virtual hard disk (VHD) files** used by Azure Virtual Machines, also great for scenario that involves **random access**.
+
+
+
+
+
+
 
 
 
@@ -58,6 +205,14 @@ some basics.
 
 
 # Chapter 8: Data Engineering with Azure Databricks x5
+
+
+
+
+
+
+
+
 
 
 
@@ -250,6 +405,8 @@ flowchart LR
 		a(Azure event hub) & b(Azure IoT Hub) & c(Azure storage blob) --> d(Azure Stream Analytics)
 		d --> e(ADLS Gen2) & f(Synapse Analytics) & g(Azure Functions) & h(Azure event hub) & i(Power BI)
 ```
+
+> 小知识: 从产品定位角度，Azure event hub主要负责大数据，IoT hub主要负责数据量小，和直接连接IoT devices/sensors, see [documentation here](https://learn.microsoft.com/en-us/azure/iot-hub/iot-hub-compare-event-hubs) ; MS官方prefer IoT hub, 支持双向连接, device-to-cloud, cloud-to-device传输command和policies之类的.
 
 怎么用这个platform as a service呢, 看下面流程图
 
@@ -479,8 +636,58 @@ Event hub acts as a front door for an event pipeline, to receive incoming data a
 - `Subscriber (Consumer)`: an entity that reads data from event hub
 
 - 和staging area的功能很类似，实际上是为了防止$r_{production} \gg r_{consumption}=\frac{\partial C}{\partial t}$ , 做了一个buffer, 可以短期储存或者处理
+
 - `Event`: a small packet of information (也叫datagram) that contains a notification, 可以individually publish, 也可以形成一个mini-batch后publish, 但有个限制条件single publication 不能大于1 MB (be is individual or batch)
--  
+
+  
+
+   
+
+### Publisher and Subscriber
+
+Publisher传输event or datagram的方式有三种协议:
+
+- HTTPS
+- Apache Kafka
+- Advance Message Queuing Protocol (AMQO)
+
+```mermaid
+flowchart LR
+		Publisher -->|HTTPS| a(EventHub)
+		Publisher -->|Apache Kafka| a(EventHub)
+		Publisher -->|AMQP| a(EventHub)
+```
+
+几种优缺点比较
+
+|          | HTTPS                                                        | AMQP                                                         | Apache Kafka                                       |
+| -------- | ------------------------------------------------------------ | ------------------------------------------------------------ | -------------------------------------------------- |
+| 优缺点   | More overhead for each request, but no initialization overhead | Higher initial session overhead (需要set up persistent bidiretional socket, transport-level secutiry (TLS)) | eventub endpoint兼容Kafka producer & consumer APIs |
+| 应用场景 | For publisher requires intermittent publishing               | For publisher frequently send data, better performance       |                                                    |
+
+### Event hubs namespace
+
+创建event hub 分两步:
+
+1. define 一个 event hubs namespace (container)
+2. Create an event hub inside the namespace
+
+
+
+
+
+
 
 ## Module 3 Ingest data streams with Azure Stream Analytics
 
+In this module, you will learn:
+
+### Understand stream processing
+
+Data stream需要做很多temporal operations such as windowed aggregates, temporal joins and temporal analytic functions to measure changes or differences over time.
+
+
+
+### Azure Stream Analytics
+
+计算资源单位为Streaming Units (SUs)
