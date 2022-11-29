@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<dsql_query number_nodes="1" number_distributions="60" number_distributions_per_node="60">
+  <sql>SELECT [CustomerID], COUNT([CustomerID]) as COUNT FROM [dbo].[SalesFact]
+GROUP BY [CustomerID]
+ORDER BY [CustomerID]</sql>
+  <dsql_operations total_cost="0" total_number_operations="1">
+    <dsql_operation operation_type="RETURN">
+      <location distribution="AllDistributions" />
+      <select>SELECT [T1_1].[CustomerID] AS [CustomerID], [T1_1].[col] AS [col] FROM (SELECT COUNT(CAST ((0) AS INT)) AS [col], [T2_1].[CustomerID] AS [CustomerID] FROM [newpool].[dbo].[SalesFact] AS T2_1 GROUP BY [T2_1].[CustomerID]) AS T1_1 ORDER BY [T1_1].[CustomerID] ASC
+OPTION (MAXDOP 1)</select>
+    </dsql_operation>
+  </dsql_operations>
+</dsql_query>

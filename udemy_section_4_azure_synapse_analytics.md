@@ -254,9 +254,7 @@ External data sources are used to establish connectivity with external reousrces
 - External table
 - Done! U can now select as you need
 
-```sql
 
-```
 
 
 
@@ -394,9 +392,7 @@ Facts table储存信息，dimension tables give context to it so we can understa
 
 ### Star Schema VS Snowflake Schema
 
-[MS Learn](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql-data-warehouse/sql-data-warehouse-tables-overview)
-
-
+Snowflake实际上就是无限套娃, set of normalized dimension tables.
 
 
 
@@ -443,6 +439,12 @@ flowchart TD
 
 
 ### Round-robin distributed tables
+
+- This type of table distributed the rows evenly across all distributions
+- General rule of thumb for round robin
+  - No `Joins`
+  - no clear candidate column for hash, then round-robin
+  - temporary staging tables can use this table type
 
 One row for each compute node, 这样的分配数据方法improves loading speed. 这也同时是default type with the symbol `dbo.dimCustomer`.
 
@@ -556,9 +558,20 @@ ORDER BY [CustomerID]
 
 ### Hash-distributed data
 
-Choose category column as the `hash value` on each compute node
+- A hash-distributed table takes the data and distributes the rows across the compute notde. The distribution of data is done via a deterministic hash function that assigns each row to one distribution.
+- Choose a **distribution column** as the `hash value` on each compute node.
+- Consider using hash-distribution table if the table size > 2GB
+- 选择Hash value需要考虑下面两点
+  - **Data skew** means the data is not distributed evenly across the distribution. 假如你选择的**hash value** 那个column的variations很少，比如只有几个不同的值，那这样的话，data rows will be distributed across fewer nodes. 这就是data skew.
+  - **Processing skew** means that some distribution tak longer than others when running parallel queries.
+- 选择hash value的rule of thumb:
+  - Choose a column for distribution that has
+    - many unique values
+    - Does not have `Nulls` or very few `Nulls`
+  - in used in `JOIN`, `GROUP BY` or `Having` clauses
+  - is not used for `WHERE` (row filtering, 通过partitioning来解决)
 
-
+ 
 
 ```mermaid
 flowchart TD
@@ -576,6 +589,14 @@ flowchart TD
 
 A full copy of the table is cached on each compute node.
 
+- Each compute node has the full copy of the table
+- Consider the use of replicated tables when the table size is less than 2GB
+- General rule of thumb:
+  - good candidate for dimension table
+  - Not good if you are going to apply many `insert` or `delete` `update` operaiton fro the database. (因为你需要对所有table进行rebuild)
+
+
+
 ```mermaid
 flowchart TD
 	a(Control Node) --> b(compute node) & c(compute node) & d(compute node)
@@ -592,9 +613,370 @@ flowchart TD
 
 
 
+## Lab table distribution
+
+见folder
 
 
 
+
+
+## Window function
+
+略，这一章很熟悉了;
+
+
+
+
+
+
+
+
+
+## Surrogate key
+
+ Just an incremental value for fact table (PK for fact table)
+
+
+
+
+
+##  Slowly changing dimension
+
+ For fact table, you will be keep appending data to the fact table. The dimension keeps on changing. 按照下面几种scenario:
+
+- **Type1**: you just update changes as they are
+  - `update` product name, 原来叫脑白金，现在叫健脑无敌白金
+- **Type2**: keep both old and new value in the dimension table
+
+| ProductSK | ProductID | ProductName  | PriceCNY | StartDate  | EndDate    | IsCurrent |
+| --------- | --------- | ------------ | -------- | ---------- | :--------- | --------- |
+| 1         | 1         | 脑白金       | 100      | 2021-03-20 | 2021-04-20 | False     |
+| 2         | 1         | 健脑无敌白金 | 200      | 2021-04-21 | 9999-12-31 | True      |
+
+- **Type 3**: Instead of having multiple rows to signify changes, we now have additional columns to signify the changes
+  - 不需要添加新的行，只需要添加新的列
+  - 挺麻烦的，有以下几个方面:
+    - 你再换一个名字，又得加两列
+    - 如果别的产品没改名，别的row也平白无故多两列，需要存`null`
+
+| ProductSK | ProductID | OriginalName | ChangedName  | EffictiveDate |
+| --------- | --------- | ------------ | ------------ | ------------- |
+| 1         | 1         | 脑白金       | 健脑无敌白金 | 2021-04-21    |
+
+
+
+## Heap
+
+我们前面讲过, 较大的ETL里，需要一个staging table, 作为source和destination的中转. 对于staging table的table distribution可以用Heap, Distribution = Round_robin.
+
+```sql
+-- Creating a heap table
+
+CREATE TABLE [dbo].[SalesFact_staging](
+	[ProductID] [int] NOT NULL,
+	[SalesOrderID] [int] NOT NULL,
+	[CustomerID] [int] NOT NULL,
+	[OrderQty] [smallint] NOT NULL,
+	[UnitPrice] [money] NOT NULL,
+	[OrderDate] [datetime] NULL,
+	[TaxAmt] [money] NULL
+)
+WITH(HEAP,
+DISTRIBUTION = ROUND_ROBIN
+)
+
+CREATE INDEX ProductIDIndex ON [dbo].[SalesFact_staging] (ProductID)
+
+```
+
+
+
+Heap table, is a table without clustered index. 也就是index的一种，一种数据结构
+
+
+
+
+
+## Partitioning ‼️
+
+Partitionions:
+
+- Divide data into smaller groups of data
+
+- Normally data is partitioned by dates and it helps in row filtering data with `WHERE` clause
+
+
+
+```sql
+-- 创造一个normal table
+
+DROP TABLE [logdata]
+
+# 创造你的table
+CREATE TABLE [logdata]
+(
+    [Id] [int] NULL,
+	[Correlationid] [varchar](200) NULL,
+	[Operationname] [varchar](200) NULL,
+	[Status] [varchar](100) NULL,
+	[Eventcategory] [varchar](100) NULL,
+	[Level] [varchar](100) NULL,
+	[Time] [datetime] NULL,
+	[Subscription] [varchar](200) NULL,
+	[Eventinitiatedby] [varchar](1000) NULL,
+	[Resourcetype] [varchar](1000) NULL,
+	[Resourcegroup] [varchar](1000) NULL
+)
+
+
+-- 
+COPY INTO logdata FROM 'https://datalake2000.blob.core.windows.net/data/cleaned/Log.csv'
+WITH
+(
+FIRSTROW=2
+)
+
+-- 看看每天的数据量有什么区别，按照日期
+SELECT 
+		FORMAT(Time,'yyyy-MM-dd') AS dt,
+		COUNT(*) 
+FROM logdata
+GROUP BY FORMAT(Time,'yyyy-MM-dd')
+
+
+```
+
+
+
+`PARTITION [Time] RANGE RIGHT FOR VALUES`, 这样会把数据分为四段, dates满足
+
+- $<$ 2021-04-01
+- $\ge$2021-04-01 and $<$ 2021-05-01
+- $\ge$ 2021-05-01 and $<$ 2021-06-01
+- $\ge$ 2021-06-01
+
+如果是LEFT Equal, 实际上就是换一下左开右闭的区间罢了
+
+```sql
+-- Let's drop the existing table if its exists
+DROP TABLE logdata
+
+
+-- Let's create a new table with partitions
+CREATE TABLE [logdata]
+(
+    [Id] [int] NULL,
+	[Correlationid] [varchar](200) NULL,
+	[Operationname] [varchar](200) NULL,
+	[Status] [varchar](100) NULL,
+	[Eventcategory] [varchar](100) NULL,
+	[Level] [varchar](100) NULL,
+	[Time] [datetime] NULL,
+	[Subscription] [varchar](200) NULL,
+	[Eventinitiatedby] [varchar](1000) NULL,
+	[Resourcetype] [varchar](1000) NULL,
+	[Resourcegroup] [varchar](1000) NULL
+)
+WITH
+(
+PARTITION ( [Time] RANGE RIGHT FOR VALUES
+            ('2021-04-01','2021-05-01','2021-06-01')
+## 这里按照月份进行分类了
+          )  
+)
+
+
+-- Copy data into the table
+COPY INTO logdata FROM 'https://datalake2000.blob.core.windows.net/data/cleaned/Log.csv'
+WITH
+(
+FIRSTROW=2
+)
+
+
+-- View the partitions
+SELECT  QUOTENAME(s.[name])+'.'+QUOTENAME(t.[name]) as Table_name
+,       i.[name] as Index_name
+,       p.partition_number as Partition_nmbr
+,       p.[rows] as Row_count
+,       p.[data_compression_desc] as Data_Compression_desc
+FROM    sys.partitions p
+JOIN    sys.tables     t    ON    p.[object_id]   = t.[object_id]
+JOIN    sys.schemas    s    ON    t.[schema_id]   = s.[schema_id]
+JOIN    sys.indexes    i    ON    p.[object_id]   = i.[object_Id]
+                            AND   p.[index_Id]    = i.[index_Id]
+WHERE t.[name] = 'logdata'
+
+
+
+-- distribution of partitions
+SELECT 
+		o.name,
+    pnp.index_id,
+    pnp.partition_id,
+    pnp.rows,   
+    pnp.data_compression_desc,
+    pnp.pdw_node_id  
+FROM sys.pdw_nodes_partitions AS pnp  
+JOIN sys.pdw_nodes_tables AS NTables  
+    ON pnp.object_id = NTables.object_id  
+AND pnp.pdw_node_id = NTables.pdw_node_id  
+JOIN sys.pdw_table_mappings AS TMap  
+    ON NTables.name = TMap.physical_name 
+    AND substring(TMap.physical_name,40, 10) = pnp.distribution_id 
+JOIN sys.objects AS o  
+    ON TMap.object_id = o.object_id  
+WHERE o.name = 'logdata'  
+ORDER BY o.name, pnp.index_id, pnp.partition_id;  
+
+```
+
+**General practice:**
+
+- Try not to create too many partitions
+- 因为你已经用了distribution了, 尽量少用
+- For optimal compression and performance of clustered columnstore stables, a minimum of 1 million rows per distribution and partition is needed.
+
+
+
+**应用场景:**
+
+- delete operation in SQL is cheap, in datawarehouse is expensive 犹如数据量很大，有些公司会把stale data parition后，直接删除partition, 而不是perform parition operation.
+- 我们可以直接把部分老数据
+
+
+
+接下来的mini-lab我们会:
+
+- create a table `logdata_new`with partition and copy the schema of `logdata` we just created (not any of the data)
+
+```sql
+CREATE TABLE [logdata_new]
+WITH
+(
+)
+AS
+SELECT *
+FROM [logdata]
+WHERE 1 = 2
+-- with the condition 1=2, it will only copy logdata table schema
+```
+
+- 将数据从`logdata` table中的数据直接switch到`logdata_new` 中去, 可以直接按照partition移动，不需要再filtering了
+
+```sql
+-- Lab - Switching partitions
+
+-- Create a new table with partitions
+-- Switch partitions
+-- This can be done with the Alter command. 
+-- But the alter command will not work if the table has a clustered column store index
+-- When using the CREATE TABLE AS , we need to mention a distribution type
+
+
+CREATE TABLE [logdata_new]
+WITH
+(
+DISTRIBUTION = ROUND_ROBIN,
+PARTITION ( [Time] RANGE RIGHT FOR VALUES
+            ('2021-05-01','2021-06-01')
+-- 三段式partition
+   ) ) 
+AS
+SELECT * 
+FROM logdata
+WHERE 1=2
+
+
+-- 将logdata的partition 2 copy over 到logdata的partition 1中去
+
+ALTER TABLE [logdata] SWITCH PARTITION 2 TO [logdata_new] PARTITION 1;
+
+
+-- 观察下新table
+
+SELECT 
+		count(*)
+FROM
+		[logdata_new]
+
+SELECT
+		FORMAT(Time,'yyyy-MM-dd') AS dt,
+		COUNT(*)
+FROM
+		logdata_new
+GROUP BY FORMAT(Time,'yyyy-MM-dd')
+
+-- 观察下老table
+
+SELECT FORMAT(Time,'yyyy-MM-dd') AS dt,COUNT(*) FROM logdata
+GROUP BY FORMAT(Time,'yyyy-MM-dd')
+```
+
+
+
+## Index ‼️
+
+Index:
+
+- just like how you read a book, you read book index to direct you. Same idea.
+
+
+
+For column-oriented database and datawarehouse (an Azure Synapse SQL Pool)
+
+
+
+**Clustered columnstore indexes:**
+
+- default index, highest level of compression and best query performance
+- But not gonna with if column has `VARCHAR(MAX)`
+- Not ideal for small tables have less than 60 million rows
+
+
+
+**Heap table**
+
+- for staging purpose 
+- faster to load and read can be taken from the cache
+
+
+
+**Clustered indexes**
+
+- You can create a clustered index on just a specific column of a table
+
+```sql
+CREATE TABLE shit
+(
+  [ProductID] [int] NOT NULL,
+  [OrderQty] [int] NOT NULL
+)
+WITH (CLUSTERED INDEX (ProductID));
+```
+
+- 这样上面这个table的productID 就被标记上了, 如果你要长期query这一列的话，很好用
+
+
+
+**Nonclustered indexes**
+
+- If you want to improve the filetering on other columns
+- But this adds on to the table space
+
+
+
+# Summary
+
+In this section, i have learnt:
+
+- the architecture of the PssS, Azure Synapse Analytics
+- dedicated pool and serverless pool
+- bulk insertion to copy database from one to another
+- architecture of data ware house
+- dimensional modelling in dataware house
+- distribution, partitioning and index in database/datawarehouse design
 
 
 
@@ -602,4 +984,8 @@ flowchart TD
 
 - [Servless SQL pool VS Dedicated SQL pool](https://www.royalcyber.com/resources/blogs/dedicated-sql-pool-vs-serverless-sql/)
 - [snowflake schema vs star schema](https://www.youtube.com/watch?v=Qq4yhhAk9fc)
+- [Documentation design table distribution](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql/develop-tables-overview)
+  - MS官方的doc比较serverless SQL and dedicated SQL中支持的table distribution; 就算你需要run一些ad-hoc analysis by crating serverless SQL pool and query by external source, 会发现查询很耗费时间的原因;
+  - 
+
 

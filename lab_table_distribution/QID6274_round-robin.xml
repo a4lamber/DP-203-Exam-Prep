@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<dsql_query number_nodes="1" number_distributions="60" number_distributions_per_node="60">
+  <sql>SELECT [CustomerID], COUNT([CustomerID]) as COUNT FROM [dbo].[SalesFact]
+GROUP BY [CustomerID]
+ORDER BY [CustomerID]</sql>
+  <dsql_operations total_cost="0.00288" total_number_operations="4">
+    <dsql_operation operation_type="ON">
+      <location permanent="false" distribution="Control" />
+      <sql_operations>
+        <sql_operation type="statement">CREATE TABLE [tempdb].[QTables].[QTable_6d45a0a97f5e44ffa75db226efacdea1] ([CustomerID] INT NOT NULL, [col] BIGINT ) WITH(DISTRIBUTED_MOVE_FILE='');</sql_operation>
+      </sql_operations>
+    </dsql_operation>
+    <dsql_operation operation_type="PARTITION_MOVE">
+      <operation_cost cost="0.00288" accumulative_cost="0.00288" average_rowsize="12" output_rows="1" GroupNumber="12" />
+      <location distribution="AllDistributions" />
+      <source_statement>SELECT [T1_1].[CustomerID] AS [CustomerID], [T1_1].[col] AS [col] FROM (SELECT COUNT_BIG(CAST ((0) AS INT)) AS [col], [T2_1].[CustomerID] AS [CustomerID] FROM [newpool].[dbo].[SalesFact] AS T2_1 GROUP BY [T2_1].[CustomerID]) AS T1_1
+OPTION (MAXDOP 1, MIN_GRANT_PERCENT = [MIN_GRANT], DISTRIBUTED_MOVE(N''))</source_statement>
+      <destination>Control</destination>
+      <destination_table>[QTable_6d45a0a97f5e44ffa75db226efacdea1]</destination_table>
+    </dsql_operation>
+    <dsql_operation operation_type="RETURN">
+      <location distribution="Control" />
+      <select>SELECT [T1_1].[CustomerID] AS [CustomerID], [T1_1].[col] AS [col] FROM (SELECT CONVERT (INT, [T2_1].[col], 0) AS [col], [T2_1].[CustomerID] AS [CustomerID] FROM (SELECT ISNULL([T3_1].[col], CONVERT (BIGINT, 0, 0)) AS [col], [T3_1].[CustomerID] AS [CustomerID] FROM (SELECT SUM([T4_1].[col]) AS [col], [T4_1].[CustomerID] AS [CustomerID] FROM [tempdb].[QTables].[QTable_6d45a0a97f5e44ffa75db226efacdea1] AS T4_1 GROUP BY [T4_1].[CustomerID]) AS T3_1) AS T2_1) AS T1_1 ORDER BY [T1_1].[CustomerID] ASC
+OPTION (MAXDOP 1, MIN_GRANT_PERCENT = [MIN_GRANT])</select>
+    </dsql_operation>
+    <dsql_operation operation_type="ON">
+      <location permanent="false" distribution="Control" />
+      <sql_operations>
+        <sql_operation type="statement">DROP TABLE [tempdb].[QTables].[QTable_6d45a0a97f5e44ffa75db226efacdea1]</sql_operation>
+      </sql_operations>
+    </dsql_operation>
+  </dsql_operations>
+</dsql_query>
