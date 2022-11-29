@@ -13,7 +13,7 @@ Now, let's use a check list to do this
 - [ ] Chapter 5
 - [ ] Chapter 6
 - [ ] Chapter 7
-- [ ] Chapter 8
+- [ ] Chapter 8 Data engineering with Azure Databricks 
 - [x] Chapter 9 Large-Scale Data Processing with ADLS Gen2 (11/26)
 - [ ] Chapter 10 Implement a Data Streaming solution with Azure Streaming Analytics
 
@@ -205,6 +205,36 @@ This is what you are gonna be tested on, it has three types:
 
 
 # Chapter 8: Data Engineering with Azure Databricks x5
+
+It has 5 modules:
+
+- Explore Azure DB
+- Use Apache Spark in Azure DB
+- Use Delta Lake in Azure DB
+- Use SQL Warehouse in Azure DB
+- Run Azure DB notebooks with Azure Data Factory
+
+
+
+
+
+## Module 1 Explore Azure DB
+
+In this video, you will learn:
+
+- provision an Azure DB workspace
+- identify core workloads and personas for Azure DB
+- Describe key concepts of an Azure DB solution
+
+
+
+### Some basics
+
+- built by Microsoft and the team started Apache Spark
+- Create a workspace in Azure DB has three tiers
+  - Standard
+  - Premium: role-based access controls + others (audit)
+  - Trial
 
 
 
