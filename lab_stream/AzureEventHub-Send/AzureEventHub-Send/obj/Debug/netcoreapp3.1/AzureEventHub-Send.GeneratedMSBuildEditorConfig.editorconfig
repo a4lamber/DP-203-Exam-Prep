@@ -1,0 +1,3 @@
+is_global = true
+build_property.RootNamespace = AzureEventHub_Send
+build_property.ProjectDir = /Users/yixiangzhang/Documents/DP_203/lab_stream/AzureEventHub-Send/AzureEventHub-Send/

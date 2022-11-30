@@ -8,8 +8,8 @@ Now, let's use a check list to do this
 
 - [ ] Chapter 1
 - [x] Chapter 2 Store data in Azure (11/26)
-- [ ] Chapter 3
-- [ ] Chapter 4
+- [ ] Chapter 3 Data integration at scale with ADF or Synapse Pipeline
+- [ ] Chapter 4 Realize integrated Analytical Solution with Synapse
 - [ ] Chapter 5
 - [ ] Chapter 6
 - [ ] Chapter 7
@@ -185,6 +185,48 @@ This is what you are gonna be tested on, it has three types:
 
 
 # Chapter 3: Data integration at scale with ADF or Azure Synapse Pipeline
+
+
+
+## Module 1 integrate data with ADF or Synapse
+
+
+
+## Module 2 Petabyte-scale Ingestion with ADF or Azure Synapse Pipeline
+
+
+
+
+
+## Module 3 Perform code-free transformation at scale with ADF or Azure synapse
+
+
+
+## Module 4 Populate slowly changing dimensions in Azure Synapse Analytics pipelines❤️
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Module 5 Orchestrate data movement and transformation
+
+
+
+## Module 6 Execute existing SSIS packages
+
+
+
+## Module 7 Operationalize your ADF or Azure Synapse
+
+
 
 
 
@@ -721,3 +763,10 @@ Data stream需要做很多temporal operations such as windowed aggregates, tempo
 ### Azure Stream Analytics
 
 计算资源单位为Streaming Units (SUs)
+
+
+
+
+
+
+

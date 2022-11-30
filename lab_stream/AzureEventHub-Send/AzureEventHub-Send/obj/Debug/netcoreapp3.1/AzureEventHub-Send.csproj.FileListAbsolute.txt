@@ -1,0 +1,58 @@
+C:/tmp/AzureEventHub-Send/AzureEventHub-Send/bin/Debug/netcoreapp3.1/AzureEventHub-Send.exe
+C:/tmp/AzureEventHub-Send/AzureEventHub-Send/bin/Debug/netcoreapp3.1/AzureEventHub-Send.deps.json
+C:/tmp/AzureEventHub-Send/AzureEventHub-Send/bin/Debug/netcoreapp3.1/AzureEventHub-Send.runtimeconfig.json
+C:/tmp/AzureEventHub-Send/AzureEventHub-Send/bin/Debug/netcoreapp3.1/AzureEventHub-Send.runtimeconfig.dev.json
+C:/tmp/AzureEventHub-Send/AzureEventHub-Send/bin/Debug/netcoreapp3.1/AzureEventHub-Send.dll
+C:/tmp/AzureEventHub-Send/AzureEventHub-Send/bin/Debug/netcoreapp3.1/AzureEventHub-Send.pdb
+C:/tmp/AzureEventHub-Send/AzureEventHub-Send/bin/Debug/netcoreapp3.1/Azure.Core.dll
+C:/tmp/AzureEventHub-Send/AzureEventHub-Send/bin/Debug/netcoreapp3.1/Azure.Messaging.EventHubs.dll
+C:/tmp/AzureEventHub-Send/AzureEventHub-Send/bin/Debug/netcoreapp3.1/Microsoft.Azure.Amqp.dll
+C:/tmp/AzureEventHub-Send/AzureEventHub-Send/bin/Debug/netcoreapp3.1/Microsoft.Bcl.AsyncInterfaces.dll
+C:/tmp/AzureEventHub-Send/AzureEventHub-Send/bin/Debug/netcoreapp3.1/System.Memory.Data.dll
+C:/tmp/AzureEventHub-Send/AzureEventHub-Send/obj/Debug/netcoreapp3.1/AzureEventHub-Send.csprojAssemblyReference.cache
+C:/tmp/AzureEventHub-Send/AzureEventHub-Send/obj/Debug/netcoreapp3.1/AzureEventHub-Send.AssemblyInfoInputs.cache
+C:/tmp/AzureEventHub-Send/AzureEventHub-Send/obj/Debug/netcoreapp3.1/AzureEventHub-Send.AssemblyInfo.cs
+C:/tmp/AzureEventHub-Send/AzureEventHub-Send/obj/Debug/netcoreapp3.1/AzureEventHub-Send.csproj.CoreCompileInputs.cache
+C:/tmp/AzureEventHub-Send/AzureEventHub-Send/obj/Debug/netcoreapp3.1/AzureEventHub-Send.csproj.CopyComplete
+C:/tmp/AzureEventHub-Send/AzureEventHub-Send/obj/Debug/netcoreapp3.1/AzureEventHub-Send.dll
+C:/tmp/AzureEventHub-Send/AzureEventHub-Send/obj/Debug/netcoreapp3.1/AzureEventHub-Send.pdb
+C:/tmp/AzureEventHub-Send/AzureEventHub-Send/obj/Debug/netcoreapp3.1/AzureEventHub-Send.genruntimeconfig.cache
+C:/Work/Udemy_2020/DP-203/2. Design and Develop Data Processing/Azure Event Hubs and Stream Analytics/3. Sending and Receiving Events/AzureEventHub-Send/AzureEventHub-Send/bin/Debug/netcoreapp3.1/AzureEventHub-Send.exe
+C:/Work/Udemy_2020/DP-203/2. Design and Develop Data Processing/Azure Event Hubs and Stream Analytics/3. Sending and Receiving Events/AzureEventHub-Send/AzureEventHub-Send/bin/Debug/netcoreapp3.1/AzureEventHub-Send.deps.json
+C:/Work/Udemy_2020/DP-203/2. Design and Develop Data Processing/Azure Event Hubs and Stream Analytics/3. Sending and Receiving Events/AzureEventHub-Send/AzureEventHub-Send/bin/Debug/netcoreapp3.1/AzureEventHub-Send.runtimeconfig.json
+C:/Work/Udemy_2020/DP-203/2. Design and Develop Data Processing/Azure Event Hubs and Stream Analytics/3. Sending and Receiving Events/AzureEventHub-Send/AzureEventHub-Send/bin/Debug/netcoreapp3.1/AzureEventHub-Send.runtimeconfig.dev.json
+C:/Work/Udemy_2020/DP-203/2. Design and Develop Data Processing/Azure Event Hubs and Stream Analytics/3. Sending and Receiving Events/AzureEventHub-Send/AzureEventHub-Send/bin/Debug/netcoreapp3.1/AzureEventHub-Send.dll
+C:/Work/Udemy_2020/DP-203/2. Design and Develop Data Processing/Azure Event Hubs and Stream Analytics/3. Sending and Receiving Events/AzureEventHub-Send/AzureEventHub-Send/bin/Debug/netcoreapp3.1/AzureEventHub-Send.pdb
+C:/Work/Udemy_2020/DP-203/2. Design and Develop Data Processing/Azure Event Hubs and Stream Analytics/3. Sending and Receiving Events/AzureEventHub-Send/AzureEventHub-Send/bin/Debug/netcoreapp3.1/Azure.Core.dll
+C:/Work/Udemy_2020/DP-203/2. Design and Develop Data Processing/Azure Event Hubs and Stream Analytics/3. Sending and Receiving Events/AzureEventHub-Send/AzureEventHub-Send/bin/Debug/netcoreapp3.1/Azure.Messaging.EventHubs.dll
+C:/Work/Udemy_2020/DP-203/2. Design and Develop Data Processing/Azure Event Hubs and Stream Analytics/3. Sending and Receiving Events/AzureEventHub-Send/AzureEventHub-Send/bin/Debug/netcoreapp3.1/Microsoft.Azure.Amqp.dll
+C:/Work/Udemy_2020/DP-203/2. Design and Develop Data Processing/Azure Event Hubs and Stream Analytics/3. Sending and Receiving Events/AzureEventHub-Send/AzureEventHub-Send/bin/Debug/netcoreapp3.1/Microsoft.Bcl.AsyncInterfaces.dll
+C:/Work/Udemy_2020/DP-203/2. Design and Develop Data Processing/Azure Event Hubs and Stream Analytics/3. Sending and Receiving Events/AzureEventHub-Send/AzureEventHub-Send/bin/Debug/netcoreapp3.1/System.Memory.Data.dll
+C:/Work/Udemy_2020/DP-203/2. Design and Develop Data Processing/Azure Event Hubs and Stream Analytics/3. Sending and Receiving Events/AzureEventHub-Send/AzureEventHub-Send/obj/Debug/netcoreapp3.1/AzureEventHub-Send.csprojAssemblyReference.cache
+C:/Work/Udemy_2020/DP-203/2. Design and Develop Data Processing/Azure Event Hubs and Stream Analytics/3. Sending and Receiving Events/AzureEventHub-Send/AzureEventHub-Send/obj/Debug/netcoreapp3.1/AzureEventHub-Send.AssemblyInfoInputs.cache
+C:/Work/Udemy_2020/DP-203/2. Design and Develop Data Processing/Azure Event Hubs and Stream Analytics/3. Sending and Receiving Events/AzureEventHub-Send/AzureEventHub-Send/obj/Debug/netcoreapp3.1/AzureEventHub-Send.AssemblyInfo.cs
+C:/Work/Udemy_2020/DP-203/2. Design and Develop Data Processing/Azure Event Hubs and Stream Analytics/3. Sending and Receiving Events/AzureEventHub-Send/AzureEventHub-Send/obj/Debug/netcoreapp3.1/AzureEventHub-Send.csproj.CoreCompileInputs.cache
+C:/Work/Udemy_2020/DP-203/2. Design and Develop Data Processing/Azure Event Hubs and Stream Analytics/3. Sending and Receiving Events/AzureEventHub-Send/AzureEventHub-Send/obj/Debug/netcoreapp3.1/AzureEventHub-Send.csproj.CopyComplete
+C:/Work/Udemy_2020/DP-203/2. Design and Develop Data Processing/Azure Event Hubs and Stream Analytics/3. Sending and Receiving Events/AzureEventHub-Send/AzureEventHub-Send/obj/Debug/netcoreapp3.1/AzureEventHub-Send.dll
+C:/Work/Udemy_2020/DP-203/2. Design and Develop Data Processing/Azure Event Hubs and Stream Analytics/3. Sending and Receiving Events/AzureEventHub-Send/AzureEventHub-Send/obj/Debug/netcoreapp3.1/AzureEventHub-Send.pdb
+C:/Work/Udemy_2020/DP-203/2. Design and Develop Data Processing/Azure Event Hubs and Stream Analytics/3. Sending and Receiving Events/AzureEventHub-Send/AzureEventHub-Send/obj/Debug/netcoreapp3.1/AzureEventHub-Send.genruntimeconfig.cache
+/Users/yixiangzhang/Documents/DP_203/lab_stream/AzureEventHub-Send/AzureEventHub-Send/bin/Debug/netcoreapp3.1/AzureEventHub-Send
+/Users/yixiangzhang/Documents/DP_203/lab_stream/AzureEventHub-Send/AzureEventHub-Send/bin/Debug/netcoreapp3.1/AzureEventHub-Send.deps.json
+/Users/yixiangzhang/Documents/DP_203/lab_stream/AzureEventHub-Send/AzureEventHub-Send/bin/Debug/netcoreapp3.1/AzureEventHub-Send.runtimeconfig.json
+/Users/yixiangzhang/Documents/DP_203/lab_stream/AzureEventHub-Send/AzureEventHub-Send/bin/Debug/netcoreapp3.1/AzureEventHub-Send.runtimeconfig.dev.json
+/Users/yixiangzhang/Documents/DP_203/lab_stream/AzureEventHub-Send/AzureEventHub-Send/bin/Debug/netcoreapp3.1/AzureEventHub-Send.dll
+/Users/yixiangzhang/Documents/DP_203/lab_stream/AzureEventHub-Send/AzureEventHub-Send/bin/Debug/netcoreapp3.1/AzureEventHub-Send.pdb
+/Users/yixiangzhang/Documents/DP_203/lab_stream/AzureEventHub-Send/AzureEventHub-Send/bin/Debug/netcoreapp3.1/Azure.Core.dll
+/Users/yixiangzhang/Documents/DP_203/lab_stream/AzureEventHub-Send/AzureEventHub-Send/bin/Debug/netcoreapp3.1/Azure.Messaging.EventHubs.dll
+/Users/yixiangzhang/Documents/DP_203/lab_stream/AzureEventHub-Send/AzureEventHub-Send/bin/Debug/netcoreapp3.1/Microsoft.Azure.Amqp.dll
+/Users/yixiangzhang/Documents/DP_203/lab_stream/AzureEventHub-Send/AzureEventHub-Send/bin/Debug/netcoreapp3.1/Microsoft.Bcl.AsyncInterfaces.dll
+/Users/yixiangzhang/Documents/DP_203/lab_stream/AzureEventHub-Send/AzureEventHub-Send/bin/Debug/netcoreapp3.1/System.Memory.Data.dll
+/Users/yixiangzhang/Documents/DP_203/lab_stream/AzureEventHub-Send/AzureEventHub-Send/obj/Debug/netcoreapp3.1/AzureEventHub-Send.csproj.AssemblyReference.cache
+/Users/yixiangzhang/Documents/DP_203/lab_stream/AzureEventHub-Send/AzureEventHub-Send/obj/Debug/netcoreapp3.1/AzureEventHub-Send.GeneratedMSBuildEditorConfig.editorconfig
+/Users/yixiangzhang/Documents/DP_203/lab_stream/AzureEventHub-Send/AzureEventHub-Send/obj/Debug/netcoreapp3.1/AzureEventHub-Send.AssemblyInfoInputs.cache
+/Users/yixiangzhang/Documents/DP_203/lab_stream/AzureEventHub-Send/AzureEventHub-Send/obj/Debug/netcoreapp3.1/AzureEventHub-Send.AssemblyInfo.cs
+/Users/yixiangzhang/Documents/DP_203/lab_stream/AzureEventHub-Send/AzureEventHub-Send/obj/Debug/netcoreapp3.1/AzureEventHub-Send.csproj.CoreCompileInputs.cache
+/Users/yixiangzhang/Documents/DP_203/lab_stream/AzureEventHub-Send/AzureEventHub-Send/obj/Debug/netcoreapp3.1/AzureEventHub-Send.csproj.CopyComplete
+/Users/yixiangzhang/Documents/DP_203/lab_stream/AzureEventHub-Send/AzureEventHub-Send/obj/Debug/netcoreapp3.1/AzureEventHub-Send.dll
+/Users/yixiangzhang/Documents/DP_203/lab_stream/AzureEventHub-Send/AzureEventHub-Send/obj/Debug/netcoreapp3.1/AzureEventHub-Send.pdb
+/Users/yixiangzhang/Documents/DP_203/lab_stream/AzureEventHub-Send/AzureEventHub-Send/obj/Debug/netcoreapp3.1/AzureEventHub-Send.genruntimeconfig.cache
