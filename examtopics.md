@@ -295,25 +295,9 @@ CREATE TABLE table1
     - 因为PolyBase can't load rows that have more than 1,000,000 bytes of data (1MB 是限制). When you put data into the text files in Azure Blob storage or Azure Data Lake Store, they must have fewer than 1,000,000 bytes of data. This byte limitation is true regardless of the table schema. 每行数据量别超过这个数
 - ❤️25: query performance tuning 的问题
   - 知识: dedicated SQL pool有两种features for performance tuning for queries
-    - `cached result`: result set caching is used for getting high concurrency and fast response from repetitive queries against static data.
-    - `Materialized views` : allow data changes in the base tables. Data in materialized views can be applied to a piece of query. This support allows the same materialized views to be used by different queries that share some computation for faster performance.
-  - 答案B, materialzed view, [看这里](https://techdifferences.com/difference-between-view-and-materialized-view.html) and [SQL View on SQLShack](https://www.sqlshack.com/sql-view-a-complete-introduction-and-walk-through/)
-
-![](https://techdifferences.com/wp-content/uploads/2016/12/View-Vs-Materialized-View.jpg)
-
-| BASIS FOR COMPARISON |                             VIEW                             |                      MATERIALIZED VIEW                       |
-| :------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
-|        Basic         |       A View is **never stored it is only displayed**.       |          A Materialized View is stored on the disk.          |
-|        Define        | View is the virtual table formed from one or more base tables or views. | Materialized view is a **physical copy of the base table**.  |
-|        Update        | View is updated each time the virtual table (View) is used.  | Materialized View has to be updated manually or using triggers. |
-|        Speed         |                       Slow processing.                       |                       Fast processing.                       |
-|     Memory usage     |              View do not require memory space.               |           Materialized View utilizes memory space.           |
-|        Syntax        |                      `Create View V As`                      | `Create Materialized View V Build [clause] Refresh [clause] On [Trigger] As` |
-
-总之:
-
-- VIEW就是把复杂SQL代码储存下来，你直接跑就行了，不占内存，你每次run这个view, 都需要compute your pre-stored query
-- Materialized view就是physical copy of your base data。 A materialized view persists the data returned from the view definition query and automatically gets upadted as data changes in the underlying table.[Create materialzed view in T-SQL aooly to Synapse](https://learn.microsoft.com/en-us/sql/t-sql/statements/create-materialized-view-as-select-transact-sql?view=azure-sqldw-latest)
+    - `cached result`: result set caching is used for getting high concurrency and fast response from repetitive queries against static data. [Performance tuning with result set caching](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql-data-warehouse/performance-tuning-result-set-caching)
+    - `Materialized views` : allow data changes in the base tables. Data in materialized views can be applied to a piece of query. This support allows the same materialized views to be used by different queries that share some computation for faster performance.[看这里](https://techdifferences.com/difference-between-view-and-materialized-view.html) and [SQL View on SQLShack](https://www.sqlshack.com/sql-view-a-complete-introduction-and-walk-through/)
+  - 答案B, materialzed view, 
 
 
 
@@ -369,9 +353,37 @@ CREATE TABLE table1
 
 
 
-## Materialized view for performance tuning
+## SQL performance tuning
 
-### Case A
+
+
+
+
+### Materialized view for performance tuning
+
+View和Materialize view的区别
+
+![](https://techdifferences.com/wp-content/uploads/2016/12/View-Vs-Materialized-View.jpg)
+
+
+
+| BASIS FOR COMPARISON |                             VIEW                             |                      MATERIALIZED VIEW                       |
+| :------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
+|        Basic         |       A View is **never stored it is only displayed**.       |          A Materialized View is stored on the disk.          |
+|        Define        | View is the virtual table formed from one or more base tables or views. | Materialized view is a **physical copy of the base table**.  |
+|        Update        | View is updated each time the virtual table (View) is used.  | Materialized View has to be updated manually or using triggers. |
+|        Speed         |                       Slow processing.                       |                       Fast processing.                       |
+|     Memory usage     |              View do not require memory space.               |           Materialized View utilizes memory space.           |
+|        Syntax        |                      `Create View V As`                      | `Create Materialized View V Build [clause] Refresh [clause] On [Trigger] As` |
+
+总之:
+
+- VIEW就是把复杂SQL代码储存下来，你直接跑就行了，不占内存，你每次run这个view, 都需要compute your pre-stored query
+- Materialized view就是physical copy of your base data。 A materialized view persists the data returned from the view definition query and automatically gets upadted as data changes in the underlying table.[Create materialzed view in T-SQL aooly to Synapse](https://learn.microsoft.com/en-us/sql/t-sql/statements/create-materialized-view-as-select-transact-sql?view=azure-sqldw-latest)
+
+下面看两个案例
+
+#### Case A
 
  This example shows how Synapse SQL optimizer automatically uses materialized views to execute a query for better performance even when the query uses functions unsupported in CREATE MATERIALIZED VIEW, such as `COUNT(DISTINCT expression)`. A query used to take multiple seconds to complete now finishes in sub-second without any change in the user query.
 
@@ -413,7 +425,7 @@ SET @timerend = sysdatetime()
 select DATEDIFF(ms,@timerstart,@timerend);
 ```
 
-### Case B
+#### Case B
 
 In this example, User2 creates a materialized view on tables owned by User1. The materialized view is owned by User1.
 
@@ -463,3 +475,16 @@ revert;
 GO
 ```
 
+### Performance tuning with result set caching
+
+result set caching是一个功能，可以turn on and off, 一旦turn on, 所有有权限的用户的query到的信息都会存在cache里，直到cache满了 (1 TB per database)
+
+#### When cached results are used
+
+Cached result set is reused for a query if **all of the following requirements** are met:
+
+- The user who's running the query has access to all the tables referenced in the query.
+- There is an exact match between the new query and the previous query that generated the result set cache.
+- There is **no data or schema changes in the tables where the cached result set was generated from.**
+
+要求太严苛了，base table data and schema不能变，datawarehouse中虽然是slowly changing dimension，但也是在变的
