@@ -297,15 +297,61 @@ CREATE TABLE table1
   - 知识: dedicated SQL pool有两种features for performance tuning for queries
     - `cached result`: result set caching is used for getting high concurrency and fast response from repetitive queries against static data. [Performance tuning with result set caching](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql-data-warehouse/performance-tuning-result-set-caching)
     - `Materialized views` : allow data changes in the base tables. Data in materialized views can be applied to a piece of query. This support allows the same materialized views to be used by different queries that share some computation for faster performance.[看这里](https://techdifferences.com/difference-between-view-and-materialized-view.html) and [SQL View on SQLShack](https://www.sqlshack.com/sql-view-a-complete-introduction-and-walk-through/)
-  - 答案B, materialzed view, 
+  - 答案B, materialzed view, 详情见附录
+- ❤️26: Synapse 中用Apache Spark pool named `Pool1`, 你现在需要建一个database named `DB1` in `Pool1`, You need to ensure that when tables are created in DB1, the tables are available automatically as external tables to built-in serverless SQL pool.
+  - My Answer: `Parquet` 遇事不觉选parquet
+  - 分析: For each spark external table based on **Parquet or csv** and located in Azure storage, an external table is craeted in a serverless SQL pool. 注意: Serverless SQL pool可以自动同步metadata from Apache Spark. 这个features这样设计的原因是spark pool shut down后，你仍然能access from serverless SQL pool. 但只支持parquet or csv (parquet faster since it's column-oriented) 
+  - [Synchronize Apache Spark external table and serverless SQL pool](https://docs.microsoft.com/en-us/azure/synapse-analytics/sql/develop-storage-files-spark-tables)
+- ❤️27: You are planning a solution to aggregate streaming data that originates in Apache Kafka and is output to Azure Data Lake Storage Gen2. The developers who will implement the stream processing solution use Java. **Which service should you recommend using to process the streaming data?**
+  - Attempted: Azure stream analytics ❌
+  - 答案: Azure Databricks
+  - 分析: 考的是Azure生态中，语言支持度的问题, 支持java的Azure DB。同时也可以是排除法，排除Azure stream analytics由于它只能接受event hub, iot hub和blob as input
+- ❤️28: You plan to implement an Azure Data Lake Storage Gen2 container that will contain CSV files. The size of the files will vary based on the number of events that occur per hour.
+  File sizes range from 4 KB to 5 GB.
+  You need to ensure that the files stored in the container are optimized for batch processing.
+  What should you do?
+  - Attempted: Convert the files for Avro
+  - 答案：绝大多数人vote `merge the file` , 少部分人vote `Avro`
+  - 分析: 
+  - In [best practice for ADLS](https://learn.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-best-practices#file-size), ADLS支持的file format和file size的讨论如下
+    - 对于file size, larger files lead to better **performance** and **reduced cost**.
+      -  你最好把你的数据分成 256MB - 100GB in size for better performance. 超过100GB不太好处理。太多零碎的小文件也会导致性能变慢
+      - 对于transcation, 是按照4MB为梯度收费，你文件全都是如果只有几KB,  那都会按4MB一个收费，那就贵了
+    - 对于file format的选择
+      - Consider `Avro` in cases your I/O patterns are more write heavy or query patterns favor retrieving multiple rows of records.
+      - Consider `Parquet` and`ORC` when you I/O patterns are more read heaby or query patterns are focused on a subset of columns.
+- 29 考点是用`json`表达acess tier。You store files in an Azure Data Lake Storage Gen2 container. The container has the storage policy shown in the following exhibit.
+  - Attempted: 
+    - The files are [answer choice] after 30 days: Moved to cool storage
+    - The storage policy apllies to [answer choice]: `container1/contoso.csv` 
+
+- 30: You are designing a financial transactions table in an Azure Synapse Analytics **dedicated SQL poo**l. The table will have a **clustered columnstore index** and will include the following columns:
+  ✑ TransactionType: 40 million rows per transaction type
+  ✑ CustomerSegment: 4 million per customer segment
+  ✑ TransactionMonth: 65 million rows per month
+  AccountType: 500 million per account type
+  You have the following query requirements:
+  ✑ Analysts will most commonly analyze transactions for a given month.
+  ✑ Transactions analysis will typically summarize transactions by transaction type, customer segment, and/or account type
+  You need to recommend a partition strategy for the table to **minimize query times.**
+  On which column should you recommend partitioning the table?
+  - A. CustomerSegment
+  - B. AccountType
+  - C. TransactionType
+  - D. TransactionMonth
+- Attempted: D 正确了！
+  - 思路: 我的思路是根据query requirement的第一条，总是会query monthly data, 这样的话，我自然prefer partitioning with month.
+  - 看过讨论之后的思路是: 根据第二条, transcation type, customer segment and account type 是分析的column, 也会perform aggregate statistics,也就是需要用很多`group by` and `join`,  最后用month in `where` for row filtering. 前者需求由distribution负责，后者用where
+  - Note: 见到clustered columnstore tables, 至少需要1million rows per distribution and partition is needed.
+- 31: 
 
 
 
 
 
+# 附录
 
-
-
+这里都是根据考试的题目，整理的知识点。
 
 
 
@@ -488,3 +534,74 @@ Cached result set is reused for a query if **all of the following requirements**
 - There is **no data or schema changes in the tables where the cached result set was generated from.**
 
 要求太严苛了，base table data and schema不能变，datawarehouse中虽然是slowly changing dimension，但也是在变的
+
+
+
+## Streaming solution in Azure
+
+Streaming solution in Azure 分以下这几类:
+
+- Azure Stream Analytics
+- HDInsight with Spark Streaming
+- Apache Spark in Azure Databricks
+- HDInsight with Storm
+- Azure Functions
+- Azure App service Webjobs
+- Apache kafka streams API
+
+### General Capbility
+
+| Capability           | Azure Stream Analytics                                       | HDInsight with Spark Streaming                               | Apache Spark in Azure Databricks                             | HDInsight with Storm | Azure Functions                                 | Azure App Service WebJobs      |
+| :------------------- | :----------------------------------------------------------- | :----------------------------------------------------------- | :----------------------------------------------------------- | :------------------- | :---------------------------------------------- | :----------------------------- |
+| Programmability      | SQL, JavaScript                                              | [C#/F#](https://github.com/dotnet/spark), Java, Python, Scala | [C#/F#](https://github.com/dotnet/spark), Java, Python, R, Scala | C#, Java             | C#, F#, Java, Node.js, Python                   | C#, Java, Node.js, PHP, Python |
+| Programming paradigm | Declarative                                                  | Mixture of declarative and imperative                        | Mixture of declarative and imperative                        | Imperative           | Imperative                                      | Imperative                     |
+| Pricing model        | [Streaming units](https://azure.microsoft.com/pricing/details/stream-analytics/) | Per cluster hour                                             | [Databricks units](https://azure.microsoft.com/pricing/details/databricks) | Per cluster hour     | Per function execution and resource consumption | Per app service plan hour      |
+
+
+
+### Integration capabilities
+
+| Capability | Azure Stream Analytics                                       | HDInsight with Spark Streaming                               | Apache Spark in Azure Databricks                             | HDInsight with Storm                                      | Azure Functions                                              | Azure App Service WebJobs                                    |
+| :--------- | :----------------------------------------------------------- | :----------------------------------------------------------- | :----------------------------------------------------------- | :-------------------------------------------------------- | :----------------------------------------------------------- | :----------------------------------------------------------- |
+| Inputs     | Azure Event Hubs, Azure IoT Hub, Azure Blob storage          | Event Hubs, IoT Hub, Kafka, HDFS, Storage Blobs, Azure Data Lake Store | Event Hubs, IoT Hub, Kafka, HDFS, Storage Blobs, Azure Data Lake Store | Event Hubs, IoT Hub, Storage Blobs, Azure Data Lake Store | [Supported bindings](https://learn.microsoft.com/en-us/azure/azure-functions/functions-triggers-bindings#supported-bindings) | Service Bus, Storage Queues, Storage Blobs, Event Hubs, WebHooks, Azure Cosmos DB, Files |
+| Sinks      | Azure Data Lake Store, Azure SQL Database, Storage Blobs, Event Hubs, Power BI, Table Storage, Service Bus Queues, Service Bus Topics, Azure Cosmos DB, Azure Functions | HDFS, Kafka, Storage Blobs, Azure Data Lake Store, Azure Cosmos DB | HDFS, Kafka, Storage Blobs, Azure Data Lake Store, Azure Cosmos DB | Event Hubs, Service Bus, Kafka                            | [Supported bindings](https://learn.microsoft.com/en-us/azure/azure-functions/functions-triggers-bindings#supported-bindings) | Service Bus, Storage Queues, Storage Blobs, Event Hubs, WebHooks, Azure Cosmos DB, Files |
+
+### Processing capabilities
+
+| Capability                                           | Azure Stream Analytics                                       | HDInsight with Spark Streaming | Apache Spark in Azure Databricks                  | HDInsight with Storm         | Azure Functions                                         | Azure App Service WebJobs            |
+| :--------------------------------------------------- | :----------------------------------------------------------- | :----------------------------- | :------------------------------------------------ | :--------------------------- | :------------------------------------------------------ | :----------------------------------- |
+| Built-in temporal/windowing support                  | Yes                                                          | Yes                            | Yes                                               | Yes                          | No                                                      | No                                   |
+| Input data formats                                   | Avro, JSON or CSV, UTF-8 encoded                             | Any format using custom code   | Any format using custom code                      | Any format using custom code | Any format using custom code                            | Any format using custom code         |
+| Scalability                                          | [Query partitions](https://learn.microsoft.com/en-us/azure/stream-analytics/stream-analytics-parallelization) | Bounded by cluster size        | Bounded by Databricks cluster scale configuration | Bounded by cluster size      | Up to 200 function app instances processing in parallel | Bounded by app service plan capacity |
+| Late arrival and out of order event handling support | Yes                                                          | Yes                            | Yes                                               | Yes                          | No                                                      | No                                   |
+
+需要注意的是以下几点:
+
+- 不同streaming solution的语言支持度不同
+- 考的最多的几个平台会是Azure Stream Analytics, Azure Databricks
+- Azure stream analytics
+  - 只支持declarative language like SQL and javascript, 
+  - output format只支持`Avro`,`JSON`,`CSV` and `UTF-8` encoded. 不支持`.parquet`
+  - input 只支持Azure event hub, azure IOT hub, blob storage (不支持kafka,)之前学stream时候遇到过, 可以用排除法
+  - Sink支持最多了, 而且优点是可以用Ms全家桶，直接到PowerBI
+- Azure Databricks
+  - 支持java, python, scala,R and C#/F#
+  - input 支持: Event Hubs, IoT Hub, Storage Blobs, **Kafka, HDFS, Azure Data Lake Store**
+
+
+
+[Choose a streaming processing in Azure](https://learn.microsoft.com/en-us/azure/architecture/data-guide/technology-choices/stream-processing#integration-capabilities)
+
+
+
+
+
+## Batch processing best practice
+
+https://learn.microsoft.com/en-us/azure/architecture/data-guide/technology-choices/batch-processing
+
+
+
+## Indexing
+
+还是没搞懂columnstore index和例题30
