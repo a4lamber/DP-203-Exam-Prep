@@ -322,9 +322,11 @@ flowchart LR
 				block5 --> block6
 				block6 --> block7
 		end
-		block3 --> block4
+		one --> two
 		
 ```
+
+
 
 
 
@@ -916,11 +918,20 @@ GROUP BY FORMAT(Time,'yyyy-MM-dd')
 
 
 
-## Index ‼️
+## Indexing ‼️
 
 Index:
 
 - just like how you read a book, you read book index to direct you. Same idea.
+- 一些学习资源
+  - [帖子for basic indexing](https://chartio.com/assets/65a00c/tutorials/database-indexing/569d22eeb4dbb4255daba9994ea4664251640a59cc99ade7cdb1c37691d6c99c/indexed-table.png)
+  - [Abdul Bari](https://www.youtube.com/watch?v=aZjYr87r1b8) this guy is a god
+  - 
+
+
+
+
+
 
 
 
@@ -987,5 +998,4 @@ In this section, i have learnt:
 - [Documentation design table distribution](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql/develop-tables-overview)
   - MS官方的doc比较serverless SQL and dedicated SQL中支持的table distribution; 就算你需要run一些ad-hoc analysis by crating serverless SQL pool and query by external source, 会发现查询很耗费时间的原因;
   - 
-
 

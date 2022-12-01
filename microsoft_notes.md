@@ -204,13 +204,47 @@ This is what you are gonna be tested on, it has three types:
 
 ## Module 4 Populate slowly changing dimensions in Azure Synapse Analytics pipelines❤️
 
+Slowly changing dimensions (SCD) are tables in a dimensional model that handle changes to dimension values over time. 我们需要处理datawarehouse中数据的更新和变化, 在刚开始设计datawarehouse 中的table的时候，就可以优先考虑进来以后这些数据会怎么样变化, 比如
+
+- 股票变化很快, 商品的名称变化就很慢
+-  公司电话的更改，要不要保留以前的电话在数据库中
+
+考虑下面的example, 红框中围起来的部分，就是来记录变化日期的audit column
+
+![](https://learn.microsoft.com/en-us/training/wwl-data-ai/populate-slowly-changing-dimensions-azure-synapse-analytics-pipelines/media/dimcustomer-example-slowly-changing-dimensions-columns.png)
+
+### Type 1 SCD
+
+如果数据中的公司名称变更，直接改名称，并标准修改日期，以前的名称不保留。
+
+![](https://learn.microsoft.com/en-us/training/wwl-data-ai/populate-slowly-changing-dimensions-azure-synapse-analytics-pipelines/media/slowly-changing-dimensions-type-1-change.png)
 
 
 
+### Type 2 SCD
+
+A type 2 SCD 就像git一样，支持versioning of dimension members.
+
+![An example Type 2 SCD row that shows a new record for Region change.](https://learn.microsoft.com/en-us/training/wwl-data-ai/populate-slowly-changing-dimensions-azure-synapse-analytics-pipelines/media/slowly-changing-dimensions-type-2-change.png)
 
 
 
+### Type 3 SCD
 
+这一种将数据保留在同一行，有这样的优缺点:
+
+- 更新数据，不需要每次都加一行
+- 以后如果再改名，得加列
+
+![](https://learn.microsoft.com/en-us/training/wwl-data-ai/populate-slowly-changing-dimensions-azure-synapse-analytics-pipelines/media/slowly-changing-dimensions-type-3-change.png)
+
+
+
+### Type 6
+
+前三种type的之和。
+
+![](https://learn.microsoft.com/en-us/training/wwl-data-ai/populate-slowly-changing-dimensions-azure-synapse-analytics-pipelines/media/slowly-changing-dimensions-type-6-change.png)
 
 
 
