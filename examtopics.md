@@ -335,15 +335,107 @@ CREATE TABLE table1
   ✑ Transactions analysis will typically summarize transactions by transaction type, customer segment, and/or account type
   You need to recommend a partition strategy for the table to **minimize query times.**
   On which column should you recommend partitioning the table?
+
   - A. CustomerSegment
   - B. AccountType
   - C. TransactionType
   - D. TransactionMonth
+
 - Attempted: D 正确了！
+
   - 思路: 我的思路是根据query requirement的第一条，总是会query monthly data, 这样的话，我自然prefer partitioning with month.
   - 看过讨论之后的思路是: 根据第二条, transcation type, customer segment and account type 是分析的column, 也会perform aggregate statistics,也就是需要用很多`group by` and `join`,  最后用month in `where` for row filtering. 前者需求由distribution负责，后者用where
   - Note: 见到clustered columnstore tables, 至少需要1million rows per distribution and partition is needed.
-- 31: 
+
+- 31: You have an Azure Data Lake Storage Gen2 account named account1 that stores logs as shown in the following table.
+
+  ![](https://www.examtopics.com/assets/media/exam-media/04259/0006800003.png)
+
+- **You do not expect that the logs will be accessed during the retention periods.**
+  You need to recommend a solution for account1 that meets the following requirements:
+  ✑ Automatically deletes the logs at the end of each retention period
+  ✑ Minimizes storage costs
+  What should you include in the recommendation? To answer, select the appropriate options in the answer area.
+  NOTE: Each correct selection is worth one point.
+
+  ![](https://www.examtopics.com/assets/media/exam-media/04259/0006900003.png)
+
+  - Attempted answer:
+    - Store logs in Archive access tier❌
+    - For automaticaly deleting logs: 盲猜一个Azure Blob storage lifecycle management rules
+  - 考点: 错了一个，蒙对了一个。答案是infrastructure to cool, application to archive.原因在于**early deletion fee**. 详情见附录.
+
+- ❤️32: You plan to ingest **streaming social media data** by using **Azure Stream Analytics.** The data will be stored in files in **Azure Data Lake Storage**, and then consumed by using Azure Databricks and PolyBase in Azure Synapse Analytics.
+  **You need to recommend a Stream Analytics data output format to ensure that the queries from Databricks and PolyBase against the files encounter the fewest possible errors.** The solution must ensure that the files can be queried quickly and that the data type information is retained.
+  What should you recommend from (JSON, Parquet, CSV, Avro)
+
+  - Attempted: avro❌
+  - 我的思路: 从要求和service两个方面出发
+    - 有两个要求, query quickly and data type information is retained.
+      - query quickly则 avro or parquet (parquet quicker) 但是没有specify到底是什么样的query, `where` based avro, `group by` and `join` based parquet
+      - data type informaiton is retained 换句话说就是data output format能够储存schema信息，那么`csv`肯定不是 
+    - 从service出发，Azure stream analytics方便serialization的output 只有avro了
+  - 思路: 想多了，现在stream analytics支持avro了，databrick和synapse都是spark as engine, 那自然parquet更快
+
+- ❤️33: You have an **Azure Synapse Analytics dedicated SQL pool** named Pool1. Pool1 contains a partitioned fact table named **dbo.Sales** and a staging table named **stg.Sales** that has the matching table and partition definitions.
+  You need to overwrite the content of the first partition in dbo.Sales with the content of the same partition in stg.Sales. **The solution must minimize load times**.
+  What should you do?
+
+  - Attempted: switch the first partition from dbo.Sales to stg.Sales❌
+  - 思路: partition 就是为了优化bulk update, deletion, row filetering operation 存在的, 肯定选这个
+  - 答案: 正确的操作for overwriting operations: switches the first partition from stg.Sales to dbo.Sales
+  - 分析思路:  SQL command for this is `SWITCH [source] TO [target]`, 那自然是这个逻辑[Best practice for dediacate SQL pool](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql/best-practices-dedicated-sql-pool)
+
+  看下面这行for example[example of Azure on medium](https://medium.com/@cocci.g/switch-partitions-in-azure-synapse-sql-dw-1e0e32309872)
+
+  ```sql
+  ALTER TABLE stg.Sales SWITCH PARTITION 1 TO dbo.FactSales PARTITION 1;
+  ```
+
+- 34: You are designing a slowly changing dimension (SCD) for supplier data in an Azure Synapse Analytics dedicated SQL pool.
+  **You plan to keep a record of changes to the available fields.**
+  The supplier data contains the following columns.
+
+  ![](https://www.examtopics.com/assets/media/exam-media/04259/0007200001.png)
+
+- Which **three additional columns** should you **add to the data** to create a Type 2 SCD? Each correct answer presents part of the solution.
+
+  - A: surrogate primary key
+  - B. effective start date
+  - C. business key
+  - D. last modified date
+  - E. effective end date
+  - F. foreign key
+
+- 我的答案: A, B, E (community的答案majority支持ABE)
+
+  - 巧记 slowly changing dimension (SCD) type [SCD learning module](https://learn.microsoft.com/en-us/training/modules/populate-slowly-changing-dimensions-azure-synapse-analytics-pipelines/3-choose-between-dimension-types)
+    - Type1: overwrite with modified date, 这样不保存过去的信息
+    - Type2: 在有surrogate key的情况下，加一行数据, 再加几列audit column such as `StartDate` ,`EndDate` and `IsCurrent`
+    - Type3: 1行存俩名，practically speaking很少用，因为不好用
+
+- ❤️35:You have a **Microsoft SQL Server database that uses a third normal form schema.**
+  You plan to migrate the data in the database to a star schema in an Azure Synapse Analytics dedicated SQL pool.
+  You need to design the dimension tables. **The solution must optimize read operations.**
+  What should you include in the solution? To answer, select the appropriate options in the answer area.
+  NOTE: Each correct selection is worth one point.
+
+  ![](https://www.examtopics.com/assets/media/exam-media/04259/0007400001.png)
+
+  - Attempted answer: maintain 3 normal form, New identity column❌
+  - 我的思路: third normal什么意思? 我只知道normalization和denormalization
+
+  
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -581,7 +673,7 @@ Streaming solution in Azure 分以下这几类:
 - 考的最多的几个平台会是Azure Stream Analytics, Azure Databricks
 - Azure stream analytics
   - 只支持declarative language like SQL and javascript, 
-  - output format只支持`Avro`,`JSON`,`CSV` and `UTF-8` encoded. 不支持`.parquet`
+  - output format只支持`Avro`,`JSON`,`CSV` and `UTF-8` encoded. 不支持`.parquet` ❌, 看了一下这，是支持的[here](https://learn.microsoft.com/en-us/azure/stream-analytics/stream-analytics-define-outputs) and [here](https://azure.microsoft.com/en-ca/updates/stream-analytics-offers-native-support-for-parquet-format/). 要去Azure验证一下了(maybe not)
   - input 只支持Azure event hub, azure IOT hub, blob storage (不支持kafka,)之前学stream时候遇到过, 可以用排除法
   - Sink支持最多了, 而且优点是可以用Ms全家桶，直接到PowerBI
 - Azure Databricks
@@ -605,3 +697,66 @@ https://learn.microsoft.com/en-us/azure/architecture/data-guide/technology-choic
 ## Indexing
 
 还是没搞懂columnstore index和例题30
+
+
+
+## Access tier
+
+### Storagin Billing
+
+Access tier的细节考点:
+
+- **Hot tier** - An online tier optimized for storing data that is accessed or modified frequently. The hot tier has the highest storage costs, but the lowest access costs.
+- **Cool tier** - An online tier optimized for storing data that is infrequently accessed or modified. **Data in the cool tier should be stored for a minimum of 30 days.** The cool tier has lower storage costs and higher access costs compared to the hot tier.(30 - x where x is the # of days stored in cool tier)
+- **Archive tier** - An offline tier optimized for storing data that is rarely accessed, and that has flexible latency requirements, on the order of hours. **Data in the archive tier should be stored for a minimum of 180 days.** 不然要收early deletion penalty (180 - x for archive tier). 
+
+
+
+### Billing for Changing a blob's access tier
+
+Keep in mind the following billing impacts when changing a blob's tier:
+
+- When a blob is uploaded or moved between tiers, it's charged at the corresponding rate immediately upon upload or tier change.
+- When a blob is moved to **a cooler tier,** **the operation is billed as a write operation to the destination tier**, where the write operation (per 10,000) and data write (per GB) charges of the destination tier apply.
+- When a blob is moved to a **warmer tier, the operation is billed as a read from the source** tier, where the read operation (per 10,000) and data retrieval (per GB) charges of the source tier apply. Early deletion charges for any blob moved out of the cool or archive tier may apply as well.
+- While a blob is being rehydrated from the archive tier, that blob's data is billed as archived data until the data is restored and the blob's tier changes to hot or cool.
+
+The following table summarizes how tier changes are billed.
+
+|                             | **Write charges (operation + access)**                   | **Read charges (operation + access)**                    |
+| :-------------------------- | :------------------------------------------------------- | :------------------------------------------------------- |
+| **Set Blob Tier** operation | Hot to cool;<br /> Hot to archive;<br /> Cool to archive | Archive to cool;<br /> Archive to hot:<br /> cool to hot |
+
+
+
+### Blob lifecycle mangement
+
+For periodically and automaticaaly manage, delete your blob.
+
+ 
+
+## Paritioning table in dedicated SQL pool
+
+如果你需要更新数据数据:
+
+- update, delete很慢
+- partition switch 很快!
+
+```sql
+ALTER TABLE FactInternetSales SWITCH PARTITION 2 TO FactInternetSales_20000101 PARTITION 2;
+
+ALTER TABLE FactInternetSales SPLIT RANGE (20010101);
+```
+
+
+
+
+
+## Dimensional modeling (normalization form)
+
+Denormalization is the process of transforming higher normal forms to lower normal forms via storing the join of higher normal form relations as a base relation.
+
+Denormalization increases the performance in data retrieval at cost of bringing update anomalies to a database. [Explore the Role of Normal Forms in Dimensional Modeling (based on Kimball's book)](https://www.mssqltips.com/sqlservertip/5614/explore-the-role-of-normal-forms-in-dimensional-modeling/)
+
+
+
