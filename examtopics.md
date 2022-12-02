@@ -7,7 +7,8 @@
 To-do out of 48 pages
 
 - Page (2/48), 第10题 (10/247)  (2022/11/29)
-- Page (5/48), 第10题 (25/247)  (2022/11/30)
+- Page (5/48), 第25题 (25/247)  (2022/11/30)
+- Page(10/48), 第50题 (50/247)  (2022/12/01)
 
 [toc]
 
@@ -15,7 +16,9 @@ To-do out of 48 pages
 
 
 
-## Topic 1: Question Set 1
+
+
+## 1-50
 
 
 
@@ -416,7 +419,7 @@ CREATE TABLE table1
 
 - ❤️35:You have a **Microsoft SQL Server database that uses a third normal form schema.**
   You plan to migrate the data in the database to a star schema in an Azure Synapse Analytics dedicated SQL pool.
-  You need to design the dimension tables. **The solution must optimize read operations.**
+  You need to design the dimension tables. **The solution must optimize read operations.** (没跑了，read I/O pattern from multiple `join`, 一定是denormalize你的fact tables)
   What should you include in the solution? To answer, select the appropriate options in the answer area.
   NOTE: Each correct selection is worth one point.
 
@@ -424,10 +427,262 @@ CREATE TABLE table1
 
   - Attempted answer: maintain 3 normal form, New identity column❌
   - 我的思路: third normal什么意思? 我只知道normalization和denormalization
+  - 答案: denormalization to a second normal form, new identity key
 
-  
+- You plan to develop a dataset named Purchases by using **Azure Databricks**. Purchases will contain the following columns:
+  ✑ ProductID
+  ✑ ItemPrice
+  ✑ LineTotal
+  ✑ Quantity
+  ✑ StoreID
+  ✑ Minute
+  ✑ Month
+  ✑ Hour
+  ✑ Day
+  You need to store the data to support hourly incremental load pipelines that will vary for each Store ID. **The solution must minimize storage costs.**
+  How should you complete the code? To answer, select the appropriate options in the answer area.
+  NOTE: Each correct selection is worth one point.
+
+- Attempted solution: `df.write.partitionBy("StoreID","Year","Month","Day","Hour").parquet("/Purchase")`
+
+  - 几个有意思的trick
+    - `df.write.partitionBy("y","m","d").mode(SaveMode.Append).parquet("/data/hive/warehouse/db_name.db/" + tableName)`
+    - `df.write.mode(SaveMode.Overwrite).parquet("/data/hive/warehouse/db_name.db/" + tableName + "/y=" + year + "/m=" + month + "/d=" + day)`
+
+- ❤️37: You are designing a partition strategy for a fact table in an Azure Synapse Analytics dedicated SQL pool. The table has the following specifications:
+
+  - Contain sales data for 20,000 products.
+  - Use hash distribution on a column named ProductID.
+  - Contain 2.4 billion records for the years 2019 and 2020.
+
+- Which number of partition ranges provides optimal compression and performance for the clustered columnstore index? (40,240,400,2400)
+
+  - Attempted: 2400❌
+  - 我的思路： For columnstore index to be efficient, 至少每个partition需要1 million record, 2.4 billion/1million = 2400
+  - 答案:40, 因为dedicated SQL pool 一上来自动先把table分20
+
+- 38: You are creating dimensions for a data warehouse in an Azure Synapse Analytics dedicated SQL pool.
+  You create a table by using the Transact-SQL statement shown in the following exhibit.
+
+  ![](https://www.examtopics.com/assets/media/exam-media/04259/0007900001.png)
+
+- Use the drop-down menus to select the answer choice that completes each statement based on the information presented in the graphic.
+
+  - Attempted answer:
+    - SCD: Type 2
+    - ProductKey column is: a surrogate key 
+    - 知识: 答案没问题但涉及到以下两点:
+      - **surrogate key** in synpase could be set by `IDENTITY` [怎么用点这里](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql-data-warehouse/sql-data-warehouse-tables-identity).每当数据库插入`Insert`新数据的时候，`IDENTITY`就会自动assign 1 number.
+      - 知道了一个新概念: **business key** is an index which identifies uniqueness of a row that have business value. 不仅满足unique identifier for row, 还不是randomly generate indexing column, 必须有business意义, 比如US-NY-KLM4567这个作为`business key`,国家-州号-车牌号, 还满足unique identifies
+        - [比较business key with surrogate key](https://vertabelo.com/blog/natural-key/)
+
+- 39:
+
+  - Attemped answer: hash-distributed with Purchasekey
+  - 我的思路: 数据量很大1million per day, 3 years of data in fact table. 排除不是hash-distribued的答案，再比较`datekey` and `purchasekey` as hash value, 前者的cardinality太高，没有意义.
+
+- ❤️40: You are implementing a batch dataset in the **Parquet format**.
+  Data files will be produced be using Azure Data Factory and stored in Azure Data Lake Storage Gen2. The files will be consumed by an Azure Synapse Analytics serverless SQL pool.
+  **You need to minimize storage costs for the solution.**
+  What should you do?
+
+  - A. Use Snappy compression for the files.
+  - B. Use OPENROWSET to query the Parquet files.
+  - C. Create an external table that contains a subset of columns from the Parquet files.
+  - D. Store all data as string in the Parquet files.
+  - 我的答案:  A (snappy compression)
+  - 我的思路: C,D不可能。A,B蒙一个,
+  - 反馈:  蒙对了，snappy, google 开源的一个codec
+
+- 41: You need to build a solution to ensure that users can query specific files in an Azure Data Lake Storage Gen2 account from an Azure Synapse Analytics serverless SQL pool.
+  **Which three actions should you perform in sequence?** To answer, move the appropriate actions from the list of actions to the answer area and arrange them in the correct order.
+  NOTE: More than one order of answer choices is correct. You will receive credit for any of the correct orders you select.
+
+![](https://www.examtopics.com/assets/media/exam-media/04259/0008400001.jpg)
 
 
+
+- Attempted solution: 
+  - Create an external data source 
+  - Create an external file format object
+  - Create an external table
+- ❤️42: 
+  - Attempted answer: ❌
+    - A: a dimension table for EmployeeTransaction
+    - D: a fact table for Employee
+
+  - 分析:
+    - 这题问题很大，在dimenstional modeling
+      - Dimension table contains attribute that might change but usually changes infrequently.
+      - Fact table contains quantitative data that are commonly generated in a transactional system, and loaded into the dedicated SQL pool.
+
+- 43 考点slowly changing dimension
+  - Attempted answer: Type 2
+
+- 44
+  - attempted answer:
+    - Create a database scoped credential that uses Azure Active Directory and a Service Principal Key
+    - Create an external data source that uses the abds location
+    - Create an external file format and set the `First_Row` option
+    - Create an external table
+
+  - 知识点:
+    - 再复习一遍create external table的顺序 with [polybase](https://learn.microsoft.com/en-us/sql/relational-databases/polybase/polybase-t-sql-objects?view=sql-server-ver16) in T-SQL, 正常是四步骤, 但如果考试考只问三个，则忽略需要密钥这一点
+    - 注意: 还有一个方法是CETAS, see [here](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql/develop-tables-cetas)
+
+-  45: Youare building an Azure Synapse Analytics dedicated SQL pool that will contain a fact table for transactions from the first half of the year 2020.
+  You need to ensure that the table meets the following requirements:
+  - Minimizes the processing time to delete data that is older than 10 years
+  - Minimizes the I/O for queries that use year-to-date values
+
+- How should you complete the Transact-SQL statement? To answer, select the appropriate options in the answer area.
+  NOTE: Each correct selection is worth one point.
+- Attempted answer:
+
+```sql
+-- T-SQL solution
+CREATE TABLE [dbo].[FactTransaction]
+(
+  [TransactionTypeID] int NOT NULL,
+  [TransactionDate] int NOT NULL,
+  [CustomerID] int NOT NULL,
+  [RecepientID] int NOT NULL,
+  [Amount] money NOT NULL
+)
+WITH
+(
+  PARTITION ([TransactionID] RANGE RIGHT FOR VALUES (20200101,20200201,20200301,20200401,20200501,20200601))
+)
+
+```
+
+- 46 You are performing exploratory analysis of the bus fare data in an Azure Data Lake Storage Gen2 account by using an Azure Synapse Analytics serverless SQL pool.
+  You execute the Transact-SQL query shown in the following exhibit.
+
+```sql
+SELECT
+		payment_type,
+		SUM(fare_amount) AS fare_total
+FROM OPENROWSET(
+				BULK 'csv/busfare/tripdata_2020*.csv',
+  			DATA_SOURCE = 'BusData',
+  			FORMAT = '.CSV', PARSER_VERSION = '2.0',
+  			FIRSTROW = 2
+	)
+	WITH (
+  		payment_type INT 10,
+      fare_amount FLOAT 11
+  ) AS nyc
+GROUP BY payment_type
+ORDER BY payment_type
+
+```
+
+- Attempted solution:
+  - D: Only CSV that have file names that beginning with `tripdata_2020`
+  - 思路: `BULK 'csv/busfare/tripdata_2020*.csv'`里面的`*` is wildcard character for any number of characters.
+- ❤️❤️47: You use PySpark in Azure DB to parse the following json input.
+
+```json
+{
+  "person":[
+    {
+      "names":"keith",
+      "age": 30,
+      "dogs":["Fido","Fluffy"]
+    },
+    {
+      "names":"Donna",
+      "age": 46,
+      "dogs":["Spot"]
+    }
+  ]
+}
+```
+
+Yout need to output the following table, how to write in pyspark
+
+| Owner | age  | dog    |
+| ----- | ---- | ------ |
+| Keith | 30   | Fido   |
+| Keith | 30   | Fluffy |
+| Donna | 46   | Spot   |
+
+```python
+# right solution
+dbutils.fs.put("/tmp/source.json",source_json,True)
+source_df = spark.read.option("multiline","true").json("/tmp/source.json")
+
+persons = source_df.select(explode("persons").alias("persons"))
+persons_dogs = persons.select(col("persons.name").alias("owner"),col("persons.age").alias("age"),explode("perosns.dogs").alias("dog"))
+```
+
+这一题要在azure db上过一遍!
+
+- 48:
+  - Answer:
+    - HOT
+    - COOL
+    - COOL
+  - 思路，唯一有歧义的是最后一条，由于有acessible within minutes的约束，所以cool
+
+![](https://www.examtopics.com/assets/media/exam-media/04259/0009900001.jpg)
+
+- 49 You have an Azure Synapse Analytics Apache Spark pool named Pool1.
+  You plan to load JSON files from an Azure Data Lake Storage Gen2 container into the tables in Pool1. The structure and data types vary by file.
+  You need to load the files into the tables. The solution must maintain the source data types.
+  What should you do?
+  - Answer: D load the data by using pyspark
+- ❤️50: You have an Azure Databricks workspace named workspace1 in the Standard pricing tier. Workspace1 contains an all-purpose cluster named cluster1.
+  You need to reduce the time it takes for cluster1 to start and scale up. The solution must minimize costs.
+  What should you do first?
+  - Attempted Answer: C❌
+  - Answer should be D: create a pool in workspace1
+  - 分析: Databrickes Pools, **a managed cache of virtual machine instance**s that enables clusters to start and scale 4 times faster [Use DB pool](https://www.databricks.com/blog/2019/11/11/databricks-pools-speed-up-data-pipelines.html)
+    - Apache spark进行大数据的计算需要VMs, in Azure databricks, 但你start your cluster, spark会向cloud provider asks for VMs instances to deploy and then run on top of it. 这个init overhead可能会很大，很耗时。所以推出的服务databrick pools也就是和cloud provider预约一部分idle VMs, 等我需要的时候，你直接给我，不需要provision了, 提升启动速度。
+      - databrick pool的idle instances不消耗算力 (DWU)那也就不收钱，但你的cloud provider会收钱，因为他们等于预留着装着vm的机子给你
+
+
+
+## 51-100
+
+- ❤️51
+  - Attempted answer:
+    - Path pattern: product.csv❌
+    - Date format: YYYY/MM/DD
+    - 对于path pattern, this required property is used to locate your blobs wihtin the specified container. Within the path, you might choose to specify one or more instances of the variables {date} and {time}.
+      - Example 1: products/{date}/{time}/product-list.csv
+      - Example2: product/{date}/product-list.csv
+      - Example 3: product-list.csv
+    - [Use reference data for lookups in Stream Analytics](https://learn.microsoft.com/en-us/azure/stream-analytics/stream-analytics-use-reference-data)
+- ❤️❤️52 You have the following Azure Stream Analytics query
+
+```sql
+step1 AS (SELECT *
+         FROM input1
+         PARTITION BY StateID
+         INTO 10),
+step2 AS (SELECT *
+         FROM input2
+         PARTITION BY StateID
+         INTO 10)
+SELECT *
+INTO output
+FROM step1
+PARTITION BY StateID
+UNION
+SELECT * INTO output FROM step2 PARTITION BY StateID
+```
+
+
+
+![](https://www.examtopics.com/assets/media/exam-media/04259/0010800001.jpg)
+
+- Attempted answer:
+  - YES
+  - YES
+  - NO
+- 答案有分歧, 需要仔细研读
 
 
 
@@ -629,6 +884,22 @@ Cached result set is reused for a query if **all of the following requirements**
 
 
 
+
+
+## Best practices for dedicated SQL pools in Azure Synapse Analytics
+
+[MS doc reference](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql/best-practices-dedicated-sql-pool)
+
+
+
+### DO NOT OVER-PARTITION
+
+Decidate SQL pools automatically partition your data into 60 databases. Avoid high granularity partitioning strategy! 通常partition和index连用，columnstore index需要每个partition至少1 million for good performance, 那样的话一个table就需要至少60 million (auto-partition by 60 in dedicated SQL pool)
+
+
+
+
+
 ## Streaming solution in Azure
 
 Streaming solution in Azure 分以下这几类:
@@ -683,6 +954,16 @@ Streaming solution in Azure 分以下这几类:
 
 
 [Choose a streaming processing in Azure](https://learn.microsoft.com/en-us/azure/architecture/data-guide/technology-choices/stream-processing#integration-capabilities)
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -754,9 +1035,95 @@ ALTER TABLE FactInternetSales SPLIT RANGE (20010101);
 
 ## Dimensional modeling (normalization form)
 
-Denormalization is the process of transforming higher normal forms to lower normal forms via storing the join of higher normal form relations as a base relation.
+**Normalization** is the method of arranging the data in the database efficiently. There are 6 defined normal forms: 1NF, 2NF, 3NF, BCNF, 4NF, and 5NF. Normalization should eliminate redundancy but not at the cost of integrity.
+
+**Denormalization** is the process of transforming higher normal forms to lower normal forms via storing the join of higher normal form relations as a base relation.
 
 Denormalization increases the performance in data retrieval at cost of bringing update anomalies to a database. [Explore the Role of Normal Forms in Dimensional Modeling (based on Kimball's book)](https://www.mssqltips.com/sqlservertip/5614/explore-the-role-of-normal-forms-in-dimensional-modeling/)
 
 
 
+举个例子，下面是adventureWorks database, 
+
+![](https://www.mssqltips.com/tipimages2/7114_implement-dimension-denormalization-synapse-mapping-data-flow.001.png)
+
+如果你需要query很多product model and category information alongside product details, you need to join them if you are using the above schema. But if you denomarlize your schema to the figure below, no more join is needed.
+
+![](https://www.mssqltips.com/tipimages2/7114_implement-dimension-denormalization-synapse-mapping-data-flow.002.png)
+
+直接上结论:
+
+- Normalization is used when faster insertion, deletion and update anomalies and data consistency are necessarily required. (write heavy I/O)
+- Denormalization is used when faster searchs is required. (read heavy I/O pattern)
+
+
+
+## Parquet压缩指南
+
+for more details, [refer here](https://learn.microsoft.com/en-us/azure/data-factory/format-parquet)
+
+### Dataset propserties
+
+For a full list of sections and properties available for defining datasets, see the [Datasets](https://learn.microsoft.com/en-us/azure/data-factory/concepts-datasets-linked-services) article. This section provides a list of properties supported by the Parquet dataset.
+
+| Property         | Description                                                  | Required |
+| :--------------- | :----------------------------------------------------------- | :------- |
+| type             | The type property of the dataset must be set to **Parquet**. | Yes      |
+| location         | Location settings of the file(s). Each file-based connector has its own location type and supported properties under `location`. **See details in connector article -> Dataset properties section**. | Yes      |
+| compressionCodec | The compression codec to use when writing to Parquet files. When reading from Parquet files, Data Factories automatically determine the compression codec based on the file metadata. Supported types are "**none**", "**gzip**", "**snappy**" (default), and "**lzo**". Note currently Copy activity doesn't support LZO when read/write Parquet files. | No       |
+
+下面是定义type, `snappy`是默认的codec written in google and open sourced in 2011.
+
+```json
+{
+    "name": "ParquetDataset",
+    "properties": {
+        "type": "Parquet",
+        "linkedServiceName": {
+            "referenceName": "<Azure Blob Storage linked service name>",
+            "type": "LinkedServiceReference"
+        },
+        "schema": [ < physical schema, optional, retrievable during authoring > ],
+        "typeProperties": {
+            "location": {
+                "type": "AzureBlobStorageLocation",
+                "container": "containername",
+                "folderPath": "folder/subfolder",
+            },
+            "compressionCodec": "snappy"
+        }
+    }
+}
+```
+
+
+
+## 创建external tables in synpase SQL
+
+Reference please see [here](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql/develop-tables-external-tables?tabs=hadoop)
+
+有两种external tables:
+
+- **Hadoop external tables**
+  - read and export in various formats including `csv`,`parquet` and `ORC`
+  - Availabile in dedicated sql pool
+- **Native external tables**
+  - read and export data in various formats such as `csv` and `parquet`
+  - available in serverless SQL pool
+
+
+
+比较两种external table
+
+| External table type                                          | Hadoop                                                       | Native                                                       |
+| :----------------------------------------------------------- | :----------------------------------------------------------- | :----------------------------------------------------------- |
+| Dedicated SQL pool                                           | Available                                                    | Only Parquet tables are available in **public preview**.     |
+| Serverless SQL pool                                          | Not available                                                | Available                                                    |
+| Supported formats                                            | Delimited/CSV, Parquet, ORC, Hive RC, and RC                 | Serverless SQL pool: Delimited/CSV, Parquet, and [Delta Lake](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql/query-delta-lake-format) Dedicated SQL pool: Parquet (preview) |
+| [Folder partition elimination](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql/develop-tables-external-tables?tabs=hadoop#folder-partition-elimination) | No                                                           | Partition elimination is available only in the partitioned tables created on Parquet or CSV formats that are synchronized from Apache Spark pools. You might create external tables on Parquet partitioned folders, but the partitioning columns will be inaccessible and ignored, while the partition elimination will not be applied. Do not create [external tables on Delta Lake folders](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql/create-use-external-tables#delta-tables-on-partitioned-folders) because they are not supported. Use [Delta partitioned views](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql/create-use-views#delta-lake-partitioned-views) if you need to query partitioned Delta Lake data. |
+| [File elimination](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql/develop-tables-external-tables?tabs=hadoop#file-elimination) (predicate pushdown) | No                                                           | Yes in serverless SQL pool. For the string pushdown, you need to use `Latin1_General_100_BIN2_UTF8` collation on the `VARCHAR` columns to enable pushdown. |
+| Custom format for location                                   | No                                                           | Yes, using wildcards like `/year=*/month=*/day=*` for Parquet or CSV formats. Custom folder paths are not available in Delta Lake. In the serverless SQL pool you can also use recursive wildcards `/logs/**` to reference Parquet or CSV files in any sub-folder beneath the referenced folder. |
+| Recursive folder scan                                        | Yes                                                          | Yes. In serverless SQL pools must be specified `/**` at the end of the location path. In Dedicated pool the folders are always scanned recursively. |
+| Storage authentication                                       | Storage Access Key(SAK), AAD passthrough, Managed identity, Custom application Azure AD identity | [Shared Access Signature(SAS)](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql/develop-storage-files-storage-access-control?tabs=shared-access-signature), [AAD passthrough](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql/develop-storage-files-storage-access-control?tabs=user-identity), [Managed identity](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql/develop-storage-files-storage-access-control?tabs=managed-identity), [Custom application Azure AD identity](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql/develop-storage-files-storage-access-control?tabs=service-principal). |
+| Column mapping                                               | Ordinal - the columns in the external table definition are mapped to the columns in the underlying Parquet files by position. | Serverless pool: by name. The columns in the external table definition are mapped to the columns in the underlying Parquet files by column name matching. Dedicated pool: ordinal matching. The columns in the external table definition are mapped to the columns in the underlying Parquet files by position. |
+| CETAS (exporting/transformation)                             | Yes                                                          | CETAS with the native tables as a target works only in the serverless SQL pool. You cannot use the dedicated SQL pools to export data using native tables. |

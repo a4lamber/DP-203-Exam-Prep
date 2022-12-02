@@ -20,7 +20,7 @@
 
 Azure Synapse 是最新的一个捆绑service (Platform as a service), 捆绑了以下的服务
 
-- SQL technologies used in data warehousing (Synapse SQL) 吞并了Synpase
+- SQL technologies used in data warehousing (Synapse SQL) 吞并了Azure Datawarehouse
 - Spark technologies used in Bigdata (Apache Spark)
 - Pipelines for data integration and ELT/ETL (ADF)
 
@@ -92,7 +92,7 @@ Azure Synapse的架构如下
 
 ### Azure Synapse Analytics
 
-Overview:
+**Overview:**
 
 - Synapse workspace
 - Linked Service
@@ -162,6 +162,7 @@ External table concepts
 
 
 ```sql
+-- drop db if exists
 DROP DATABASE appdb;
 
 CREATE DATABASE [appdb]
@@ -247,8 +248,8 @@ External data sources are used to establish connectivity with external reousrces
   access的顺序为
 
 - Master key
+  - scoped credential
 
-- scoped credential
 - External data source
 - External file format (csv, parquet)
 - External table
@@ -398,7 +399,7 @@ Snowflake实际上就是无限套娃, set of normalized dimension tables.
 
 
 
-## **Lab** Dimensional modeling
+## Lab Dimensional modeling
 
 见lab folder for detail;
 
