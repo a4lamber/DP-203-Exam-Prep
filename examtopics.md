@@ -18,7 +18,7 @@ To-do out of 48 pages
 
 
 
-## 1-50
+## Topic 1 1-67
 
 
 
@@ -295,7 +295,7 @@ CREATE TABLE table1
   - You specify the files to ensure that each row is more than 1MB. Does this meet the goal of copying quickly?
   - 答案: 不能, 
   - 分析:
-    - 因为PolyBase can't load rows that have more than 1,000,000 bytes of data (1MB 是限制). When you put data into the text files in Azure Blob storage or Azure Data Lake Store, they must have fewer than 1,000,000 bytes of data. This byte limitation is true regardless of the table schema. 每行数据量别超过这个数
+    - 因为PolyBase can't load **rows** that have more than 1,000,000 bytes of data (1MB每行是限制). When you put data into the text files in Azure Blob storage or Azure Data Lake Store, they must have fewer than 1,000,000 bytes of data. This byte limitation is true regardless of the table schema. 每行数据量别超过这个数
 - ❤️25: query performance tuning 的问题
   - 知识: dedicated SQL pool有两种features for performance tuning for queries
     - `cached result`: result set caching is used for getting high concurrency and fast response from repetitive queries against static data. [Performance tuning with result set caching](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql-data-warehouse/performance-tuning-result-set-caching)
@@ -644,8 +644,6 @@ persons_dogs = persons.select(col("persons.name").alias("owner"),col("persons.ag
 
 
 
-## 51-100
-
 - ❤️51
   - Attempted answer:
     - Path pattern: product.csv❌
@@ -683,6 +681,185 @@ SELECT * INTO output FROM step2 PARTITION BY StateID
   - YES
   - NO
 - 答案有分歧, 需要仔细研读
+
+- ❤️53: You are building a database in an Azure Synapse Analytics serverless SQL pool.
+  You have data stored in Parquet files in an Azure Data Lake Storege Gen2 container.
+  Records are structured as shown in the following sample.
+
+  ```json
+  {
+  "id": 123,
+  "address_housenumber": "19c",
+  "address_line": "Memory Lane",
+  "applicant1_name": "Jane",
+  "applicant2_name": "Dev"
+  }
+  ```
+
+  The records contain two applicants at most.
+  You need to build a table that includes only the address fields.
+  How should you complete the Transact-SQL statement? To answer, select the appropriate options in the answer area.
+  NOTE: Each correct selection is worth one point.
+
+![](https://www.examtopics.com/assets/media/exam-media/04259/0011000001.jpg)
+
+
+
+- Attempted answer: 
+  - `Create External Table`
+  - `OPENJSON` ❌
+- 正确答案,  `OPENROWSET`
+- ❤️54: 
+
+![](https://www.examtopics.com/assets/media/exam-media/04259/0011200001.jpg)
+
+- 我的答案:
+  - blob ❌
+  - `TYPE = HADOOP`
+
+记住这张[table](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql/develop-tables-external-tables?tabs=hadoop)
+
+LOCATION = `'<prefix>://<path>'` - Provides the connectivity protocol and path to the external data source. The following patterns can be used in location:
+
+| External Data Source        | Location prefix | Location path                                                |
+| :-------------------------- | :-------------- | :----------------------------------------------------------- |
+| Azure Blob Storage          | `wasb[s]`       | `<container>@<storage_account>.blob.core.windows.net`        |
+| Azure Blob Storage          | `http[s]`       | `<storage_account>.blob.core.windows.net/<container>/subfolders` |
+| Azure Data Lake Store Gen 1 | `http[s]`       | `<storage_account>.azuredatalakestore.net/webhdfs/v1`        |
+| Azure Data Lake Store Gen 2 | `http[s]`       | `<storage_account>.dfs.core.windows.net/<container>/subfolders` |
+
+`https:` prefix enables you to use subfolder in the path.
+
+由docs中的上表可以得到, if ADLS Gen 2则df2, 如果是Azure blob则blob
+
+
+
+- 55: data format问题
+  - 我的答案: parquet
+- 56
+  - 我的答案
+    - `hash`
+    - `OrderDateKey`
+- 57
+  - 我的答案
+    - mobe to cool storage
+    - delete the blob ❌ 有争议，也可以选archive
+- ❤️58
+  - 我的答案
+    - Zone-redundant storage (ZRS) 
+    - Failover automatically initiated by an Azure automation job❌
+    - 分析: 
+      - 有争议, 但data center fails后，你还希望可以write access, 那么就只能是这个了.
+      - 关键句[failover](https://learn.microsoft.com/en-us/azure/storage/common/storage-disaster-recovery-guidance?toc=%2Fazure%2Fstorage%2Fblobs%2Ftoc.json%20https%3A%2F%2Fdocs.microsoft.com%2Fen-us%2Fanswers%2Fquestions%2F32583%2Fazure-data-lake-gen2-disaster-recoverystorage-acco.html)
+- ❤️59
+  - TYPE 3 SCD
+    - BE
+- 60
+  - 我的答案: 
+    - Common.Data: Replicated
+    - Marketing.Web.Sessions: Hash
+    - Staging.Web.Sessions: Round-robin
+- 61
+  - 我的答案
+    - CLUSTERED COLUMNSTORE INDEX
+    - `HASH([ProductKey])`
+- ❤️62
+  - 我的答案
+    - Create a partition once per month.❌
+    - 思路: 30 million data each month推出30 million x 12 = 360 million per year, dedicate SQL pool default parition = 60, 则新一年的数据总量，如果不partition 则360/60 = 6 million rows per distribution.  需求至少1 million, 如果按月分，则6 million/12 = 0.5 million row per distribution per partition是不达标的
+- ❤️63 Apache Spark SQL
+  - MERGE
+  - 分析: 看一下type 2 SCD的scala代码就知道了, [here](https://www.projectpro.io/recipes/what-is-slowly-changing-data-scd-type-2-operation-delta-table-databricks)
+- 64
+  - 我的答案:
+    - Parquet, D
+- 65
+  - 我的答案
+    - YES
+  - 思路: 有争议，但考点是用polybase load data, 每行不超过1MB
+- 66
+  - replicated
+
+- 67
+  - C
+
+
+
+
+
+
+
+## Topic 2: 1- (68)
+
+https://www.examtopics.com/exams/microsoft/dp-203/view/14/
+
+这一个topic,是从14页开始
+
+
+
+- 1:  You plan to create a real-time monitoring app that alerts users when a device travels more than 200 meters away from a designated location.
+  You need to design an Azure Stream Analytics job to process the data for the planned app. The solution must minimize the amount of code developed and the number of technologies used.
+  What should you include in the Stream Analytics job? To answer, select the appropriate options in the answer area.
+  NOTE: Each correct selection is worth one point.
+
+![](https://www.examtopics.com/assets/media/exam-media/04259/0014700001.jpg)
+
+
+
+- My answer:
+  - stream
+  - windowing❌
+- 分析: 用户设备200米外报警，数据类型是geospatial, 怎么判断什么functions则要看Azure stream analytics的一种SQL变种(Stream analytics Query language)有什么built-in function了. 如下
+
+Azure Stream Analytics provides some built-in functions. The categories of built-in functions are:
+
+## Types of Functions
+
+| Function Category                                            | Description                                                  |
+| :----------------------------------------------------------- | :----------------------------------------------------------- |
+| [Aggregate Functions](https://learn.microsoft.com/en-us/stream-analytics-query/aggregate-functions-azure-stream-analytics) | Operate on a collection of values but return a single, summarizing value. |
+| [Analytic Functions](https://learn.microsoft.com/en-us/stream-analytics-query/analytic-functions-azure-stream-analytics) | Return a value based on defined constraints.                 |
+| [Array Functions](https://learn.microsoft.com/en-us/stream-analytics-query/array-functions-stream-analytics) | Returns information from an array.                           |
+| [GeoSpatial Functions](https://learn.microsoft.com/en-us/stream-analytics-query/geospatial-functions) | Perform specialized GeoSpatial functions.                    |
+| [Input Metadata Functions](https://learn.microsoft.com/en-us/stream-analytics-query/input-metadata-functions) | Query the metadata of property in the data input.            |
+| [Record Functions](https://learn.microsoft.com/en-us/stream-analytics-query/record-functions-azure-stream-analytics) | Returns record properties or values.                         |
+| [Windowing Functions](https://learn.microsoft.com/en-us/stream-analytics-query/windowing-azure-stream-analytics) | Perform operations on events within a time window.           |
+| [Scalar Functions](https://learn.microsoft.com/en-us/stream-analytics-query/built-in-functions-azure-stream-analytics#BKMK_ScalarFunctions) | Operate on a single value and then return a single value. Scalar functions can be used wherever an expression is valid. |
+
+- Reference:
+  -  [Process real-time IoT data stream](https://learn.microsoft.com/en-us/azure/stream-analytics/stream-analytics-get-started-with-azure-stream-analytics-to-process-data-from-iot-devices)
+  - [Stream Analytics Query Language](https://learn.microsoft.com/en-us/stream-analytics-query/geospatial-functions)
+
+
+
+
+
+- ❤️2: A company has a real-time data analysis solution that is hosted on Microsoft Azure. The solution uses Azure Event Hub to ingest data and an Azure Stream
+  Analytics cloud job to analyze the data. **The cloud job is configured to use 120 Streaming Units (SU).**
+  You need to **optimize performance for the Azure Stream Analytics job.**
+  Which two actions should you perform? Each correct answer presents part of the solution.
+  NOTE: Each correct selection is worth one point.
+- A. Implement event ordering.
+- B. Implement Azure Stream Analytics user-defined functions (UDF).
+- C. Implement query parallelization by partitioning the data output.
+- D. Scale the SU count for the job up.
+- E. Scale the SU count for the job down.
+- F. Implement query parallelization by partitioning the data input.
+- My answer:
+  - 不知道
+  - 分析: 考optimization of stream analytics了，分值比较小
+
+
+
+- ❤️3
+  - eventhub❌
+  - 正确答案: event grid
+  - Event-driven architecture (EDA) 是一个很常见的data integration pattern
+- 4
+  - databricks
+  - 我的答案: automated
+
+
 
 
 
@@ -1127,3 +1304,10 @@ Reference please see [here](https://learn.microsoft.com/en-us/azure/synapse-anal
 | Storage authentication                                       | Storage Access Key(SAK), AAD passthrough, Managed identity, Custom application Azure AD identity | [Shared Access Signature(SAS)](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql/develop-storage-files-storage-access-control?tabs=shared-access-signature), [AAD passthrough](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql/develop-storage-files-storage-access-control?tabs=user-identity), [Managed identity](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql/develop-storage-files-storage-access-control?tabs=managed-identity), [Custom application Azure AD identity](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql/develop-storage-files-storage-access-control?tabs=service-principal). |
 | Column mapping                                               | Ordinal - the columns in the external table definition are mapped to the columns in the underlying Parquet files by position. | Serverless pool: by name. The columns in the external table definition are mapped to the columns in the underlying Parquet files by column name matching. Dedicated pool: ordinal matching. The columns in the external table definition are mapped to the columns in the underlying Parquet files by position. |
 | CETAS (exporting/transformation)                             | Yes                                                          | CETAS with the native tables as a target works only in the serverless SQL pool. You cannot use the dedicated SQL pools to export data using native tables. |
+
+
+
+## Disaster recovery and failover
+
+https://learn.microsoft.com/en-us/azure/storage/common/storage-disaster-recovery-guidance?toc=%2Fazure%2Fstorage%2Fblobs%2Ftoc.json%20https%3A%2F%2Fdocs.microsoft.com%2Fen-us%2Fanswers%2Fquestions%2F32583%2Fazure-data-lake-gen2-disaster-recoverystorage-acco.html
+

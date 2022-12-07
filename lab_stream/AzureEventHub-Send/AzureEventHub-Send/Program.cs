@@ -7,7 +7,7 @@ namespace AzureEventHub_Send
 {
     class Program
     {
-        private static string connection_string = "Endpoint=sb://appnamespace45667.servicebus.windows.net/;SharedAccessKeyName=Send;SharedAccessKey=iSI/Su30pcN+4iJgbetiiaZg6t0DXTy+Ji8HMw2vvtM=;EntityPath=apphub";
+        private static string connection_string = "Endpoint=sb://appnamespace-0329.servicebus.windows.net/;SharedAccessKeyName=Send;SharedAccessKey=faV8kmsq3DH7ISbwGblL3mqotGLUXUcyXef+OPqr5Ao=;EntityPath=apphub";
         static void Main(string[] args)
         {
 
