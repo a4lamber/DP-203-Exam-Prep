@@ -9,6 +9,7 @@ To-do out of 48 pages
 - Page (2/48), 第10题 (10/247)  (2022/11/29)
 - Page (5/48), 第25题 (25/247)  (2022/11/30)
 - Page(10/48), 第50题 (50/247)  (2022/12/01)
+- Page(15/48) (2022/12/06)
 
 [toc]
 
@@ -813,8 +814,6 @@ https://www.examtopics.com/exams/microsoft/dp-203/view/14/
 
 Azure Stream Analytics provides some built-in functions. The categories of built-in functions are:
 
-## Types of Functions
-
 | Function Category                                            | Description                                                  |
 | :----------------------------------------------------------- | :----------------------------------------------------------- |
 | [Aggregate Functions](https://learn.microsoft.com/en-us/stream-analytics-query/aggregate-functions-azure-stream-analytics) | Operate on a collection of values but return a single, summarizing value. |
@@ -855,9 +854,186 @@ Azure Stream Analytics provides some built-in functions. The categories of built
   - eventhub❌
   - 正确答案: event grid
   - Event-driven architecture (EDA) 是一个很常见的data integration pattern
-- 4
+- 4: You plan to perform batch processing in Azure Databricks once daily.
+  Which type of Databricks cluster should you use?
   - databricks
-  - 我的答案: automated
+  - 我的答案: high concurrency❌
+  - 正确答案: automated
+  - 分析: Databricks中有两种cluster: interactive and automated
+    - **Interactice cluster** : analyze data collaboratively with interactice notebooks (concurrency比较好)
+    - **automated cluster**: run fast and robust automated jobs
+  - For batch processing of daily data, 自然是automated比较好
+- ❤️5 高速收费站的每10分钟数据的收集
+  - MAX, TumblingWindow, DATEDIFF
+  - 分析: here for one of the stream analytics [common query patterns](https://learn.microsoft.com/en-us/azure/stream-analytics/stream-analytics-stream-analytics-query-patterns#return-the-last-event-in-a-window)
+  - query还有些没看懂, stream analytics中的`TIMESTAMP` 
+
+- ❤️6
+  - 完全不会
+  - 分析: 看懂
+  - 文献:
+    - [Dependencies in ADF](https://www.sqlshack.com/dependencies-in-azure-data-factory/)
+
+
+![](https://www.sqlshack.com/wp-content/uploads/2020/12/pipeline-with-dependencies.png)
+
+ADF 中data pipeline逻辑链, 实际上是sequential running of activity
+
+- success: only run if successful
+- failure: only run if previous activity failed
+- completion: 只要前面activity完成了, 就会run, 不管成功与否
+- skipped: run if the previous activity is skipped or not executed
+
+![](https://www.sqlshack.com/wp-content/uploads/2020/12/activities-dependencies.png)
+
+
+
+- 7: 
+
+  - My answer:
+    - ingest: Azure Data Factory
+    - store: ADLS
+    - Prepare and train: HDInsight Apache Storm Cluster❌ databrick是答案
+    - model and serve: Synapse
+
+- 8: SQL题目: calculte the employee_type value based on the hire_date value.
+
+  ![](https://www.examtopics.com/assets/media/exam-media/04259/0016100001.png)
+
+```sql
+SELECT
+		*,
+		CASE
+		WHEN hire_date >= '2019-01-01' THEN 'New'
+		ELSE 'Standard'
+		END AS employee_type
+FROM
+		employees
+```
+
+- 9 ADLS中存了json, 用synapse进行读取，考SQL
+  - 考试trick: 一共考三个function. `OPENROWSET` for load, `json_value()` and `openjaon()` for parse. 其中如果`json_value() ` parse, 需要每一列parse一下，也就是有multiple `json_value()` 如果代码中没有n个`json_value()` 则openjson
+- 10: 
+
+```sql
+SELECT
+		*
+FROM
+(
+  	SELECT
+  			YEAR(Date) Year,
+  			Month(Date) Month,
+  			Temp
+  	FROM
+  			temperatures
+  	WHERE
+  			date between Date '2019-01-01' AND Date '2021-08-31'
+)
+-- rotate table-valued expression by turning the unique values from one column in the expression into multiple columns in the output. And PIVOT runs aggregation where they're required on any remaining column values that are wanted in the final output.
+PIVOT (
+AVG (CAST(Temp AS DECIMAL(4,1)))
+FOR Month in
+	(
+  1 JAN, 2 FEB, 3 MAR, 4 APR, 5 MAY, 6 JUN,
+  7 JUL, 8 AUG, 9 SEP, 10 OCT, 11 NOV, 12 DEC
+	)
+)
+ORDER BY Year ASC
+```
+
+- 我的答案:
+  - `PIVOT` and `CAST`
+- 分析
+
+
+
+- 11: ADF中有10 pipelines. 你需要label each pipeline (E OR T OR L) and it must be available for grouping and filtering when using monitoring service. What should you add to each pipeline?
+  - 我的答案:  an annotation
+  - 分析: udemy course section 10 optimization中有谈到
+- ❤️12:
+  - 正确答案: cluster UI changed!!!!这题略过吧
+    - YES
+    - NO
+    - YES
+- 13:
+  - 我的答案: B, Azure DB
+- 14:
+  - 我的答案: `LEFT`❌ and `20100101,20110101,20120201`
+  - 分析:
+    - PARTITION LEFT和RIGHT代表哪个是开区间:
+      - **left**: 左开右闭
+      - **Right**: 左闭右开
+- 15: 
+  - 我的答案: BE
+- 16
+  - 我的答案: Yes (A)
+  - 分析: 
+    - 按理说hopping window with same window size and hop size is equivalent to tumbling window. 
+- 17
+  - 我的答案: No
+- 18
+  - 考点Stream Analytics 的SQL, 计算duraiton between the start and end event. 
+
+```sql
+SELECT
+		[user],
+		feature,
+		DATEDIFF(
+    		second,
+    		LAST(Time) OVER (PARTITION BY [user], feature LIMIT DURATION(hour,1) WHEN Event = 'start')),
+    		Time) AS duration
+FROM
+		input TIMESTAMP BY Time
+WHERE
+		Event = 'end'
+```
+
+- `DATEDIFF(unit,startdate,enddate)`
+
+- `LAST(column_name)`: return last value in a specified column
+- 19
+  - 我的答案: AB
+  - 复习一下ADF流程:
+    - sink
+    - source
+- 20
+  - 看不懂 ADF 中的mapped data flow这个语言, 其中conditional split transformation
+
+```
+CleanData
+		split(
+				dept == 'ecommerce',dept=='retail',dept =='wholesale',
+				disjoint:true
+		) ~> SplitByDept @ (ecommerce, retail, wholesale, all)
+```
+
+- 看[ADF conditional split transformation in mapping dataflow](https://learn.microsoft.com/en-us/azure/data-factory/data-flow-conditional-split)
+- 分析:
+  - disjoint还是没有看懂
+
+- 21
+  - copy json files to synapse with azure DB, 需要5 steps
+    - mount the data lake storage to DBFS
+    - read the file into a data frame
+    - perform transformation on the dataframe
+    - write the result to a table in Azure synapse❌ specify a temporary folder to stage the data
+    - drop the dataframe❌ write to azure synapse
+- 22: 
+  - 我的答案:
+    - **TYPE:** schedule
+    - **ADDITIONAL PROPERTIES:** Recurrence: 30 minutes, Start time: 2021-01-01T00:00, Dealy: 2 minutes
+  - https://learn.microsoft.com/en-us/azure/data-factory/how-to-create-tumbling-window-trigger?tabs=data-factory%2Cazure-powershell
+  - 分析几种ADF trigger types:
+    - event trigger
+      - storage event trigger (event grid)
+    - tumbling window trigger
+    - schedule trigger
+- 23:
+  - 我的答案:
+    - input type: Azure event hub
+    - output type: Power BI
+    - aggregation query location: stream analytics
+- 24:
 
 
 
@@ -1311,3 +1487,21 @@ Reference please see [here](https://learn.microsoft.com/en-us/azure/synapse-anal
 
 https://learn.microsoft.com/en-us/azure/storage/common/storage-disaster-recovery-guidance?toc=%2Fazure%2Fstorage%2Fblobs%2Ftoc.json%20https%3A%2F%2Fdocs.microsoft.com%2Fen-us%2Fanswers%2Fquestions%2F32583%2Fazure-data-lake-gen2-disaster-recoverystorage-acco.html
 
+
+
+
+
+## load files in Synapse
+
+在synapse中, 用SQL读取三种文件的读取方法:
+
+- csv
+- parquet
+- json
+  - [Query JSON files using serverlesss SQL pool in Synapse](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql/query-json-files)
+  - [medium article working with Azure Synapse SQL and JSON](https://medium.com/codex/working-with-azure-synapse-sql-and-json-b052edc94180)
+  - [stackoverflow openrowset field delimiter](https://stackoverflow.com/questions/70803261/azure-synapse-query-json-using-openrowset-fieldterminator-value-0x0b)
+
+
+
+​	
