@@ -10,6 +10,7 @@ To-do out of 48 pages
 - Page (5/48), 第25题 (25/247)  (2022/11/30)
 - Page(10/48), 第50题 (50/247)  (2022/12/01)
 - Page(15/48) (2022/12/06)
+- Page(xx/48) (2022/12/06)
 
 [toc]
 
@@ -790,7 +791,7 @@ LOCATION = `'<prefix>://<path>'` - Provides the connectivity protocol and path t
 
 
 
-## Topic 2: 1- (68)
+## Topic 2: 1- 90 (68 - 157)
 
 https://www.examtopics.com/exams/microsoft/dp-203/view/14/
 
@@ -1156,13 +1157,251 @@ GROUP BY
 ```
 
 - 49
+  - Yes❌No
+  - 分析:现在data factory还不支持R
+- ❤️50
+  - B(No)
+  - UI都改了，就记住high concurrency不支持Scala
+- 51
+  - B
+  - 分析: High concurrency with autoscaling helps to minimize query latency
+- 52
+  - 我的答案:
+    - **Parameter**: `@trigger().outputs.windowStartTime`
+    - **Naming** : `/{deviceID}/out/{YYYY}/{MM}/{DD}/{HH}.json` ❌
+    - **Copy behavior**: merge files
+  - 正确答案:
+    - `/{YYYY}/{MM}/{DD}/{HH}_{deviceType}.kspm`
+  - 分析: 一个device type中有好几个device ID, 需要在一小时内都merge起来
+- 53
+  - 我的答案:
+    - `{regionID}/raw/{YYYY}/{MM}/{HH}/{mm}/{deviceID}.json` ❌
+    - `raw/{regionID}/{YYYY}/{MM}/{HH}/{mm}/{deviceID}.json`
+- 54
+  - Stream analytics中计算system uptime
+  - 我的答案:
+
+```sql
+SELECT
+		DeviceID,
+		MIN(EventTime) AS StartTime,
+		MAX(EventTime) AS EndTime,
+		DATEDIFF(second,MIN(EventTime),MAX(EventTime)) AS duration_in_seconds
+FROM
+		input TIMESTAMP BY EventTime
+WHERE EventType = 'HeartBeat'
+GROUP BY
+		DeviceID,
+		SessionWindow(second,5,50000) OVER (Paritition BY DeviceID)
+```
+
+
+
+- 55
+  - A `%python` magical method
+- 56
+  - D
+  - 分析： 相比schedule trigger, tumbling window trigger有更多retry policy!
+  - [How to scheduel ADF pipeline using triggers](https://www.sqlshack.com/how-to-schedule-azure-data-factory-pipeline-executions-using-triggers/)
+
+- 57
+  - 我的答案:
+    - AC
+- 58
+  - C
+  - 知识点:比较一下Azure DB的三种output mode, [databrick reference](https://docs.databricks.com/getting-started/streaming.html)
+  - `Append Mode`: 
+  - `Complete Mode`: 
+  - `Update mode`: 
+- 59
+  - A
+  - 分析: data flow available in both ADF and synapse; derived column transformation in data flow is for adding new columns, just like `df.withColumn()` in spark
+- 60
+  - A❌B
+  - 分析: 和上一题姐妹题，external table一般只是用来分析或者快速copy and load, 但并不是用来做ETL中的T, 比较加audit column诸如此类的.
+- 61
+  - B
+- 62
+  - B
+- 63
+  - A
+  - 分析: ADF for orchestration and Azure DB 写R
+- 64
+  - B
+  - 分析: ADF的custom activity不支持
+- 65
+  - A
+- ❤️66
+  - 正确答案: D flatten
+  - 分析:
+- 67
+  - D
+- 68
+  - A
+  - 分析: 三种DB stream output mode, 有aggregate则用`Update`
+
+- 69
+  - B❌ D
+  - 正确答案: D, On the master database, execute a query against the sys.dm_pdw_nodes_os_performance_counters dynamic management view [DMV](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql-data-warehouse/sql-data-warehouse-manage-monitor)
   - 
 
-​	
+```sql
+-- 获取transcation log size on each distribution
+SELECT
+		instance_name as distribution_db,
+		cntr_value*1.0/1048576 as log_file_size_used_GB,
+		pdw_node_id
+FROM 
+		sys.dm_pdw_nodes_os_performance_counters
+WHERE
+		instance_name like 'Distribution_%'
+AND counter_name = 'Log File(s) Used Size (KB)'
+```
+
+- 70
+  - B: Azure Stream Analytics
+- 71
+  - C: watermark delay
+- 72
+  - **Distribution:** Hash
+  - **Index:** Cluster columnstore
+  - 分析: 关键词, fact table和query optimization
+- 73
+  - 答案: AB
+  - 分析: stream analytics的monitor, 主要看三大metrics:
+    - SU utilization
+    - backlog
+    - watermark delay
+- 74
+  - A: activities run in Azure Monitor
+- 75
+  - B
+- 76
+  - B or D蒙一个，我选B❌
+  - C. From Synapse Studio, Select the workspace. From Monitor, select Apache Sparks applications
+  - 分析:
+    - synapse中用scala, 则spark pool, 可以用synapse内置的来monitor
+- 77
+  - 我的答案:
+    - mount the ADLS to DBFS
+    - Read the file into a data frame
+    - Perforam transformation on the data frame
+    - Specify a temporaty folder to stage the data
+    - Write the results to a table in Azure Synapse
+- 78
+  - 我的答案:
+    - BE
+    - 正确答案: 大家意见不一致，最多的是AB (more vote), 其次是AF (more recent), 这道CI/CD题目没有specify是用azure devop 还是git做version control
+- 79
+  - 完全不会
+  - 正确答案:
+    - create a schedule trigger
+    - associate the schedule trigger with pipeline1
+    - merge the changes from branch1 into main
+    - publish the contents of main
+- 80
+  - abfss, Hadoop
+
+```sql
+-- create a dedicated SQL pool
+CREATE EXTERNAL DATA SOURCE <data_source_name>
+WITH
+  ( [ LOCATION = '<prefix>://<path>[:<port>]' ]
+    [ [ , ] CREDENTIAL = <credential_name> ]
+    [ [ , ] TYPE = HADOOP ]
+[ ; ]
+```
+
+Provides the **connectivity protocol** and path to the **external data source.**
+
+| External Data Source        | Connector location prefix | Location path                                         |
+| :-------------------------- | :------------------------ | :---------------------------------------------------- |
+| Azure Data Lake Store Gen 1 | `adl`                     | `<storage_account>.azuredatalake.net`                 |
+| Azure Data Lake Store Gen2  | `abfs[s]`                 | `<container>@<storage_account>.dfs.core.windows.net`  |
+| Azure V2 Storage account    | `wasb[s]`                 | `<container>@<storage_account>.blob.core.windows.net` |
+
+Location path:
+
+- `<container>` = the container of the storage account holding the data. Root containers are read-only, data can't be written back to the container.
+- `<storage_account>` = the storage account name of the Azure resource.
 
 
 
+abfs[s]中的s 代表secure (TLS/SSL), short for Azure Blob Filesystem Driver. wsab is recommended as data sent via secure TLS connection.
 
+
+
+- 81
+  - 难点[restore an dedicated SQL pool](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql-data-warehouse/sql-data-warehouse-restore-active-paused-dw)
+  - 知识点: data restore 
+- 82
+  - BE
+  - 这题是考安全的, 很小的知识点
+- 83
+  - C
+- 84
+  - CI/CD cycle题目:
+  - A
+- 85
+  - ADF tumbling window trigger dependency问题
+  - 分析:
+    - size: 只接受positive
+    - Offset: negative to the right
+
+```json
+{
+    "name": "MyTriggerName",
+    "properties": {
+        "type": "TumblingWindowTrigger",
+        "runtimeState": <<Started/Stopped/Disabled - readonly>>,
+        "typeProperties": {
+            "frequency": <<Minute/Hour>>,
+            "interval": <<int>>,
+            "startTime": <<datetime>>,
+            "endTime": <<datetime – optional>>,
+            "delay": <<timespan – optional>>,
+            "maxConcurrency": <<int>> (required, max allowed: 50),
+            "retryPolicy": {
+                "count": <<int - optional, default: 0>>,
+                "intervalInSeconds": <<int>>,
+            },
+            "dependsOn": [
+                {
+                    "type": "TumblingWindowTriggerDependencyReference",
+                    "size": <<timespan – optional>>,
+                    "offset": <<timespan – optional>>,
+                    "referenceTrigger": {
+                        "referenceName": "MyTumblingWindowDependency1",
+                        "type": "TriggerReference"
+                    }
+                },
+                {
+                    "type": "SelfDependencyTumblingWindowTriggerReference",
+                    "size": <<timespan – optional>>,
+                    "offset": <<timespan>>
+                }
+            ]
+        }
+    }
+}
+```
+
+- 86
+  - [Data flow activities in ADF and synapse](https://learn.microsoft.com/en-us/azure/data-factory/control-flow-execute-data-flow-activity)
+
+- 87
+  - A 
+- 88
+  - B
+- 89
+  - A
+- 90
+  - 正确答案BD
+  - 分析:需要读一下result set caching这一个问题, [here](https://www.examtopics.com/exams/microsoft/dp-203/view/32/)
+
+
+
+## Topic 3
 
 
 
@@ -1631,4 +1870,16 @@ https://learn.microsoft.com/en-us/azure/storage/common/storage-disaster-recovery
 
 
 
-​	
+## Azure databrick cluster config细节技术
+
+​	cluster, a group of computers
+
+- all-purpose cluster (shared by multiple users and are best for performing ad-hoc analysis, data exploration)
+- job (for batch)
+
+
+
+[azure DB cluster](https://learn.microsoft.com/en-us/azure/databricks/clusters/create-cluster)
+
+
+
