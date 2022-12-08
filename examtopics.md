@@ -1010,7 +1010,6 @@ CleanData
 - 看[ADF conditional split transformation in mapping dataflow](https://learn.microsoft.com/en-us/azure/data-factory/data-flow-conditional-split)
 - 分析:
   - disjoint还是没有看懂
-
 - 21
   - copy json files to synapse with azure DB, 需要5 steps
     - mount the data lake storage to DBFS
@@ -1034,6 +1033,134 @@ CleanData
     - output type: Power BI
     - aggregation query location: stream analytics
 - 24:
+  - json --> protobuf in Azure Stream Analytics
+  - 我的答案:
+    - 完全不会
+  - 正确答案:
+    - **Add** an Azure Stream Analytics Customer **Deserializer Project (.net) project to the Solution**
+    - Add .net deserializer code for ProtoBuf to custom deserializer project
+    - Change the event Serialization format to protobuf in the input.json File of the job and reference the DLL
+  - 分析:
+    - 看不懂，死记硬背吧这一题
+- 25
+  - 我的答案:
+    - A: Azure integration runtime
+  - 分析: self-hosted integration runtime for on-prem database; Azure IR if both database are part of MS 
+- 26
+  - 考点stream analytics中reference和stream的区别
+    - reference for slowly changing data
+    - stream for else
+  - 我的答案:
+    - Stream,stream, reference
+- 27
+  - B
+- 28
+  - LAG, LIMIT DURATION
+- 29
+  - event
+- 30
+  - 我的答案:
+    - C
+- 31
+  - 我的答案:
+    - B 
+- 32
+  - C
+
+- 33
+  - 我的答案:
+    - Service: stream analytics
+    - Window: no window❌ hopping window更节省
+    - Analysis type: point within polygon
+
+- 34
+  - 我的答案:
+    - A❌B
+
+- 35
+  - Self-hosted Integration runtime完全不会
+  - 正确答案:
+    - fail until the node comes back online
+    - Lowered?
+
+  - 分析:
+    - High availability enabled: false, 所以只有一个IR, 没有failover
+
+- ❌36
+  - 我的答案:D create a cluster policy in workspace 1
+  - standard pricing tier也改了支持autoscaling了，cluster UI也大改，这种题估计不考了
+
+- 37
+  - 我的答案:
+    - A
+
+- 38
+  - B
+
+- 39
+  - D
+
+- 40
+  - 看不懂
+  - 答案:
+    - ARM默认路径 is the branch in your repository, in this case, `adf_publish`
+    - `<repository name>/<branch name>/<table name>`
+
+  - 分析:
+
+- 41
+
+```sql
+SELECT
+		TimeZone,
+		count(*) AS MessageCount
+FROM 
+		MessageStream TIMESTAMP BY CreatedAt
+GROUP BY TimeZone, TUMBLINGWINDOW(second,15)
+```
+
+- ❤️42
+  - 考点, 比较polybase VS bulk-insert
+  - [Design a PolyBase data loading strategy for dedicated SQL pool](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql/load-data-overview)
+  - 还是没搞清楚
+- 43
+  - 我的答案:
+    - Increamental load
+    - tumbling window
+- ❤️44
+  - 我的答案:
+    - A❌B
+- 45
+  - 我的答案: C
+- 46
+  - 我的答案:
+    - 我不会
+  - 正确答案:
+    - 答案有歧义，我选择:
+    - Create a database scoped credential
+    - external data source
+    - external file format
+- 47
+  - 正确答案: D
+  - what's watermark column? [here](https://www.sqlservercentral.com/articles/access-external-data-from-azure-synapse-analytics-using-polybase)
+- 48
+
+```sql
+SELECT
+		GAME,
+		TopOne() OVER(PARTITION BY Game ORDER BY Score DESC) AS HighestScore
+FROM
+		input TIMESTAMP BY CreatedAt
+GROUP BY
+		Tumbling(minute,5)
+```
+
+- 49
+  - 
+
+​	
+
+
 
 
 
