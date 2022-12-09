@@ -180,7 +180,7 @@ CREATE TABLE table1
   - [Azure storage redundancy](https://learn.microsoft.com/en-us/azure/storage/common/storage-redundancy#geo-redundant-storage)
   - 答案: RA-GRS
 
-- ❤️18: GRS
+- ❤️18: ZRS
 
 
   - region redundancy:
