@@ -10,7 +10,8 @@ To-do out of 48 pages
 - Page (5/48), 第25题 (25/247)  (2022/11/30)
 - Page(10/48), 第50题 (50/247)  (2022/12/01)
 - Page(15/48) (2022/12/06)
-- Page(xx/48) (2022/12/06)
+- Page(30/48) (2022/12/08)
+- Page(41/48)(2022/12/09) Friday! two more days till exam
 
 [toc]
 
@@ -1401,17 +1402,347 @@ abfs[s]中的s 代表secure (TLS/SSL), short for Azure Blob Filesystem Driver. w
 
 
 
-## Topic 3
+## Topic 3: 1 - 32 (158 - 189)
+
+这个topic开始, securiey的问题变多了
+
+- ❤️1: (principle of least privilege)
+  - My answer: 
+    - Assgin the Azure role-based access control (Azure RBAC) reader roel for dw1 to group 1
+    - Create a database user in dw1 that represents group1 and uses the from `EXTERNAL PROVIDER` clause
+    - Create a database role named Role1 and grant Role1 `SELECT` permissions to dw1❌
+  - 正确答案:
+    - Create a database user in dw1 that represents **group1** and uses the from `EXTERNAL PROVIDER` clause
+    - Create a database role named **Role1** and grant Role1 `SELECT` permissions to dw1
+    - Assign **role1** to **group1** database user
+- 2:
+  - 不会
+
+![](https://www.examtopics.com/assets/media/exam-media/04259/0029000001.png)
+
+- 正确答案:
+  - TDE with customer-managed keys (Udemy课上有讲过)
+  - Create and configure Azure key vaults in two Azure regions
+
+- 分析: 题目中两个要点，**track the usage of encryption keys** and **datacenter outage won't affect availability of the encryption keys**. How customer-managed TDE works 如下， 提供了security
+
+![](https://learn.microsoft.com/en-us/azure/azure-sql/database/media/transparent-data-encryption-byok-overview/customer-managed-tde-with-roles.png?view=azuresql)
+
+- 3 要求: You need to minimize the time it takes to identify queries that return confidential information as defined by the company's data privacy regulations and the users who executed the queues.
+  - 不会, 但我盲猜CD❌
+  - 正确答案:
+    - AC
+  - 分析: 这一题的考点是Data governance. 在sql pool中，security中有一项Data Discovery & Classification. 可以通过这个服务，添加sensitivity label to each column. 再回来看本题的需求，你转换一下，实际上是要求 To identify the users who executed queries, not to hide condifential information.
+    - A: Sensitivity-classification labels applied to columns that contain confidential information
+    - C: audit logs sent to a Log Analytics workspace
+  - 知识点:
+    - [doc](https://learn.microsoft.com/en-us/azure/azure-sql/database/data-discovery-and-classification-overview?view=azuresql)
+    - udemy video on security
+- 4
+  - 需求: The solution must prevent all the salespeople from viewing or inferring the credi card information. 这题难点在于区分data masking 和column-level security 
+  - C : column level
+  - 分析: data masking, 你还和可以view the column, 只是被masked了罢了，与需求不同，所以column based
+- 5
+  - 考点RBAC for ADLS
+  - 我的答案: A, C ,E
+  - 分析: 正确，RBACl来access storage account中的数据,需要两个permission
+    - permission to see and access the storage account
+      - 用Azure AD创建一个新用户
+      - 登陆admin account, admin grant your access
+      - good to go
+    - permission to access file inside the account
+      - 用ACL grant access to each container, folder, files
+- 6
+  - 考点: customer managed key is only enabled for empty data factory resources
+- 7
+  - D
+- 8
+  - 我的答案:
+    - AD + managed identity
+- 9
+  - 答案没有统一意见, 这题问的很混乱, 但值得注意的是have access to and data masking are two different things.
+    - Data masking 根据不同地区policy来
+    - access to specific column通过column-level security来
+  - 根据以上的逻辑，答案是:
+    - Y
+    - N
+    - Y
+- ❤️10
+  - Implement TDE on Pool1 using a custom key named Key 1
+  - 不会, 正确答案如下
+
+![](https://www.examtopics.com/assets/media/exam-media/04259/0030200001.png)
+
+这题思路有点混乱的
+
+- 11
+  - B: TDE
+- 12:
+  - ADF❌ [Azure Event Hub Dedicated](https://learn.microsoft.com/en-us/azure/event-hubs/event-hubs-features)
+- 13:
+  - replicate
+- 14
+  - `df.write.partitionBy("GeographyRegionID","Year","Month","Day"),mode("append").parquet("/DBTBL1")`
+- 15
+  - 正确答案AB
+
+```sql
+-- Lab - Azure Synapse - Row-Level Security (RLS)
+
+-- 创建一个table
+CREATE TABLE [dbo].[Orders] 
+(  
+    OrderID int,  
+    Agent varchar(50),  
+    Course varchar(50),  
+    Quantity int  
+);  
+
+-- Insert rows into the table
+
+INSERT INTO [dbo].[Orders] VALUES(1,'AgentA','AZ-900',5);
+INSERT INTO [dbo].[Orders] VALUES(1,'AgentA','DP-203',4);
+INSERT INTO [dbo].[Orders] VALUES(1,'AgentB','AZ-104',5);
+INSERT INTO [dbo].[Orders] VALUES(1,'AgentB','AZ-303',6);
+INSERT INTO [dbo].[Orders] VALUES(1,'AgentA','AZ-304',7);
+INSERT INTO [dbo].[Orders] VALUES(1,'AgentB','DP-900',8);
+
+
+-- Step1: 创建三个database users
+/*
+你现在创建的这三个用户，你希望:
+Supervisor: 可以access到所有信息
+AgentA: 可以access到，where Agent = 'AgentA'的数据，就是只可以看到自己的业绩
+同理for AgentB
+*/
+
+CREATE USER Supervisor WITHOUT LOGIN;  
+CREATE USER AgentA WITHOUT LOGIN;  
+CREATE USER AgentB WITHOUT LOGIN;  
+
+-- Step2: 给users select table的权限
+-- Grant access to the tables for the users
+-- 这一步给所有的权限
+
+GRANT SELECT ON [dbo].[Orders] TO Supervisor; 
+GRANT SELECT ON [dbo].[Orders] TO AgentA; 
+GRANT SELECT ON [dbo].[Orders] TO AgentB; 
+
+-- Create a new schema for the security function
+
+CREATE SCHEMA Security;  
+
+-- Create an inline table function
+-- The function returns 1 when a row in the Agentcolumn is the same as the user executing the query 
+-- (@Agent = USER_NAME()) or if the user executing the query is the Manager user (USER_NAME() = 'Supervisor').
+
+CREATE FUNCTION Security.securitypredicate(@Agent AS nvarchar(50))  
+    RETURNS TABLE  
+WITH SCHEMABINDING  
+AS  
+    RETURN SELECT 1 AS securitypredicate_result
+WHERE @Agent = USER_NAME() OR USER_NAME() = 'Supervisor';  
+-- @Agent代表Agent column
+
+
+-- Create a security policy adding the function as a filter predicate. The state must be set to ON to enable the policy.
+
+CREATE SECURITY POLICY Filter  
+ADD FILTER PREDICATE Security.securitypredicate(Agent)
+ON [dbo].[Orders] 
+WITH (STATE = ON);  
+GO
+
+-- Lab - Azure Synapse - Row-Level Security
+
+-- Allow SELECT permissions to the function
+
+GRANT SELECT ON Security.securitypredicate TO Supervisor;
+GRANT SELECT ON Security.securitypredicate TO AgentA;  
+GRANT SELECT ON Security.securitypredicate TO AgentB;  
+
+-- Test is for the different users
+
+EXECUTE AS USER = 'AgentA';  
+SELECT * FROM [dbo].[Orders];
+REVERT;  
+  
+EXECUTE AS USER = 'AgentB';  
+SELECT * FROM [dbo].[Orders];
+REVERT;  
+  
+EXECUTE AS USER = 'Supervisor';  
+SELECT * FROM [dbo].[Orders];
+REVERT; 
+
+-- Drop all of the artefacts
+
+DROP USER Supervisor;
+DROP USER AgentA;
+DROP USER AgentB;
+
+DROP SECURITY POLICY Filter;
+DROP TABLE [dbo].[Orders];
+DROP FUNCTION Security.securitypredicate;
+DROP SCHEMA Security;
+```
+
+
+
+- 16
+  - B 
+  - 分析: 有两种方法mask data 
+    - (dynamic dat masking是从Azure portal, sql database/SQL pool的security里的dynamic data masking这一项来设置的)
+    - 通过T-SQL代码
+
+```sql
+--Grant column level UNMASK permission to ServiceAttendant  
+GRANT UNMASK ON Data.Membership(FirstName) TO ServiceAttendant;  
+
+-- Grant table level UNMASK permission to ServiceLead  
+GRANT UNMASK ON Data.Membership TO ServiceLead;  
+
+-- Grant schema level UNMASK permission to ServiceManager  
+GRANT UNMASK ON SCHEMA::Data TO ServiceManager;  
+GRANT UNMASK ON SCHEMA::Service TO ServiceManager;  
+
+--Grant database level UNMASK permission to ServiceHead;  
+GRANT UNMASK TO ServiceHead;
+```
+
+- 17
+  - 如果stroage account protected by virtual network 则managed identiy
+- 18
+  - column-level security (CLS) `GRANT`
+  - Row-level security (RLS): `CREATE SECURITY POLICY`
+- 19 Azure DB和ADLS Gen2通过Azure AD连接
+  - Tier: premium
+  - Advanced option to enable: Azure Data Lake Storage Credential Passthrough
+
+- 20
+  - managed identity
+- 21
+  - B
+- 22
+  - 不会
+  - 答案:有争议，但我认可
+    - Access databrick with personal access tokens
+    - Access ADLS from databricks with credential passthrough
+  - 分析: ADLS 和Azure DB之间，可以seamless连接with ADLS credential passthrough. 这个功能在创建cluster的时候可以在advanced option中specify, 这样你就不需要输入那么麻烦的credential了，同时也保证了你的信息安全. 但这属于premium feature. [Access ADLS using Azure AD credential passthrough](https://learn.microsoft.com/en-us/azure/databricks/security/credential-passthrough/adls-passthrough)
+
+```mermaid
+flowchart LR
+	a[(ADLS)] <--> AD
+	AD <--> b(Azure DB)
+	
+```
+
+
+
+- 23: 
+  - E
+- 24
+  - C
+- ❤️25
+  - adls1 has `https://adls.dfs.core.windows.net/container/Folder1/Folder2/` and 
+  - 需求:
+    - 1
+  - 答案:
+    - 主流分两种CD,DF, 我同意DF
+  - 分析:
+    - 先来讲三种权限:
+      - `read`: 
+      - `write`:
+      - `execute`:
+
+|             | File                                                         | Directory                                                    |
+| :---------- | :----------------------------------------------------------- | :----------------------------------------------------------- |
+| Read (R)    | Can read the contents of a file                              | Requires **Read** and **Execute** to list the contents of the directory |
+| Write (W)   | Can write or append to a file                                | Requires **Write** and **Execute** to create child items in a directory |
+| Execute (X) | Does not mean anything in the context of Data Lake Storage Gen2 | Required to traverse the child items of a directory          |
+
+- 再来讲讲ACLs, 有两种ACLs, 一种叫Access ACLs and Default ACLs, 
+  - **Access ACLs:** These control access to an objet. Files and folders both hava access ACLs.
+  - **Default ACLs:** A 'templte' of ACLs associated with a folder that determin the Access ACLs for any chile items that are created under that folder. **Files do not have Default ACLs.** 和idea of OOP很像，继承，但这里继承的是权限
+
+- 26
+  - 正确答案:
+    - MFA: Azure AD authenticaion
+    - Database-level authentication: database roles
+- 27
+  - 考点: Kusto query language + Log analytics (for auditing and diagnostics)
+  - 正确答案:
+    - 1. create a log analytics workspace that has data retention set to 120 days
+      2. from azure portal, add a diagnostic setting
+      3. select the PipelineRuns Category
+      4. Send the data to a Log Analytics workspace
+  - [Collect and analyze resource logs from an Azure resource](https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/tutorial-resource-logs?source=recommendations)
+  - 知识点Azure diagnostics settings are available for ADF and stream analytics.
+
+- 28
+  - C❌B
+  - 分析: TDE 和 encryption at rest是联系起来的, 你也可以用customer-managed key来加密workspace level, 但必须要在创建worksapce时用.
+
+- 29 哇哦，三天前考过真题
+  - `container1`: execute
+  - `directory1`: execute
+  - `files`:  write
+- 30
+  - 我的答案:
+    - ADLS Gen2 ❌ Azure SQL database
+    - A managed Hive megastore service ❌ A Hive metastore
+    - https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-external-metastore
+
+- 31
+  - To minimize cost: LRS (wow! 我不知道premium tier ADLS是没有access tier这一回事的)
+  - To delete blobs: Azure Storage lifecycle management
+- 32
+  - hot, cool, cool
 
 
 
 
 
+## Topic 4: 1 - (190)
 
 
 
-
-
+- 1:
+  - B: hash with clusterd columnstore index
+- 2: 
+  - for query rows, 我不知道
+  - 答案:
+    - B
+- 3:
+  - B (cluster event log)
+  - 知识点: Azure DB:
+    - `cluster event logs`: capture cluster lifecycle event, like creation, termination and configuration edits and so on.
+    - `Apache Spark driver and worker log`: use for debugging
+    - `Cluster init-script logs`: for debugging init script
+- 4:
+  - 答案: D
+  - [Monitor and Alert Data Factory by using Azure Monitor](https://learn.microsoft.com/en-us/azure/data-factory/monitor-using-azure-monitor) ADF只保存pipeline-run data for 45 days.
+- 5
+  - C
+- 6
+  - **A: pin the cluster**
+- 7
+  - C
+- 8
+  - 我不会, wtf is this! To ehck data skew in Table 1 in dedicated SQL pool
+  - D
+- 9
+  - Answer:
+    - Azure databricks monitoring library
+    - Azure log analytics
+- 10
+  - B
+- 11
+  - B
+- 12
+  - D
+- 13
+  - CD
 
 
 
@@ -1880,6 +2211,12 @@ https://learn.microsoft.com/en-us/azure/storage/common/storage-disaster-recovery
 
 
 [azure DB cluster](https://learn.microsoft.com/en-us/azure/databricks/clusters/create-cluster)
+
+
+
+
+
+## Azure AD
 
 
 

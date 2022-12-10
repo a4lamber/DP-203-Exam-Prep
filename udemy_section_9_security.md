@@ -174,13 +174,18 @@ REVERT;
 ```sql
 -- Lab - Azure Synapse - Azure AD Authentication - Creating a user
 
-
+-- Step1: 创造一个USER with EXTERNAL PROVIDER clause (refers to AD)
 CREATE USER [sqlusrb@techsup1000gmail.onmicrosoft.com]
 FROM EXTERNAL PROVIDER -- in this case, external provider is AD
 WITH DEFAULT_SCHEMA = dbo;
 
+-- Step2: 创造一个role
 CREATE ROLE [readrole]
-GRANT SELECT ON SCHEMA::[dbo] TO [readrole]  -- grant user permission to select
+
+-- Step3: Grant permission to this role
+GRANT SELECT ON SCHEMA::[dbo] TO [readrole]
+
+-- Step4: Execute stored procedure, assign user to the particular role
 EXEC sp_addrolemember N'readrole', N'newsql@techsup1000gmail.onmicrosoft.com'
 
 ```
