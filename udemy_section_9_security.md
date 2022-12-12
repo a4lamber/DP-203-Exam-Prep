@@ -174,6 +174,10 @@ REVERT;
 ```sql
 -- Lab - Azure Synapse - Azure AD Authentication - Creating a user
 
+-- pre-req: 在Azure AD中创建一个user,用户名和邮箱为
+-- user id: sqlusrb
+-- email: techsup1000gmail.onmicrosoft.com
+
 -- Step1: 创造一个USER with EXTERNAL PROVIDER clause (refers to AD)
 CREATE USER [sqlusrb@techsup1000gmail.onmicrosoft.com]
 FROM EXTERNAL PROVIDER -- in this case, external provider is AD
@@ -188,6 +192,7 @@ GRANT SELECT ON SCHEMA::[dbo] TO [readrole]
 -- Step4: Execute stored procedure, assign user to the particular role
 EXEC sp_addrolemember N'readrole', N'newsql@techsup1000gmail.onmicrosoft.com'
 
+-- Step5: login as sqlusrb
 ```
 
 Now you need to 

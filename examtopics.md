@@ -36,13 +36,27 @@ To-do out of 48 pages
   - Drop the `SalesFact_Work` table
   - 笔记: datawarehouse中清理stale data的`DELETE` operation, 由于数据量PB，太大了，做row filtering super expensive, 所以一般是按照某个key对table进行PARTITIONING, 之后统一删除; 
 - 4: T-SQL query, 如果你用Azure synapse的serverless SL pool, 定义external table的路径为`LOCATION = '/topfolder'`
-  - [Synapse SQL CREATE EXTERNAL TABLE](https://docs.microsoft.com/en-us/azure/synapse-analytics/sql/develop-tables-external-tables?tabs=hadoop#arguments-create-external-table) 和[T-SQL](https://learn.microsoft.com/en-us/sql/t-sql/statements/create-external-table-transact-sql?view=sql-server-ver15&tabs=dedicated#location--folder_or_filepath) 两个documentation有些不一样啊，主要分歧点在于会不会recursively return. 但可以统一的是无论T-SQL, Synapse SQL中create hadoop or native external table的路径，都会忽略隐藏文件和文件夹begins with a `_` or a perios `.` such as `/.hiddenfolder/` and `_hidden.txt` 
-  - 在serverless SQL pool中create external table, 要分类讨论
-    - `LOCATION = '/topfolder'` and native external table 则正常return
-    - `LOCATION = '/topfolder/**'` and native external table 则recursively return
-    - `LOCATION = '/topfolder'` and haoop external table 则recursivey return
 
 ![](https://www.examtopics.com/assets/media/exam-media/04259/0002000001.png)
+
+这一题是需要分类讨论的,需要判断:
+
+- External table的创造是serverless SQL pool or dedicated SQL pool
+
+| External table type                                          | Hadoop                                       | Native                                                       |
+| :----------------------------------------------------------- | :------------------------------------------- | :----------------------------------------------------------- |
+| Dedicated SQL pool                                           | Available                                    | Only Parquet tables are available in **public preview**.     |
+| Serverless SQL pool                                          | Not available                                | Available                                                    |
+| Supported formats                                            | Delimited/CSV, Parquet, ORC, Hive RC, and RC | Serverless SQL pool: Delimited/CSV, Parquet, and [Delta Lake](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql/query-delta-lake-format) Dedicated SQL pool: Parquet (preview) |
+| [Folder partition elimination](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql/develop-tables-external-tables?tabs=hadoop#folder-partition-elimination) | No                                           | Partition elimination is available only in the partitioned tables created on Parquet or CSV formats that are synchronized from Apache Spark pools. You might create external tables on Parquet partitioned folders, but the partitioning columns will be inaccessible and ignored, while the partition elimination will not be applied. Do not create [external tables on Delta Lake folders](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql/create-use-external-tables#delta-tables-on-partitioned-folders) because they are not supported. Use [Delta partitioned views](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql/create-use-views#delta-lake-partitioned-views) if you need to query partitioned Delta Lake data. |
+| [File elimination](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql/develop-tables-external-tables?tabs=hadoop#file-elimination) (predicate pushdown) | No                                           | Yes in serverless SQL pool. For the string pushdown, you need to use `Latin1_General_100_BIN2_UTF8` collation on the `VARCHAR` columns to enable pushdown. |
+| Custom format for location                                   | No                                           | Yes, using wildcards like `/year=*/month=*/day=*` for Parquet or CSV formats. Custom folder paths are not available in Delta Lake. In the serverless SQL pool you can also use recursive wildcards `/logs/**` to reference Parquet or CSV files in any sub-folder beneath the referenced folder. |
+| Recursive folder scan                                        | Yes                                          | Yes. In serverless SQL pools must be specified `/**` at the end of the location path. In Dedicated pool the folders are always scanned recursively. |
+
+- 如果是serverless SQL pool, 只可能是native table, recursive folder scan must be specified at the end of the location path with `/**`
+- 如果是dedicated SQL pool, haddop is available and native type is only available in public view. 绝大多数情况都是hadoop type, 那么都是recursive call.
+- create hadoop or native external table的路径，都会忽略隐藏文件和文件夹begins with a `_` or a perios `.` such as `/.hiddenfolder/` and `_hidden.txt` 
+  - [Reference here](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql/develop-tables-external-tables?tabs=hadoop)
 
 - 5: 
   - for report 1, `Parquet`: column-oriented binary file
@@ -733,7 +747,7 @@ LOCATION = `'<prefix>://<path>'` - Provides the connectivity protocol and path t
 
 `https:` prefix enables you to use subfolder in the path.
 
-由docs中的上表可以得到, if ADLS Gen 2则df2, 如果是Azure blob则blob
+由docs中的上表可以得到, if ADLS Gen 2则dfs, 如果是Azure blob则blob
 
 
 
@@ -1703,7 +1717,7 @@ flowchart LR
 
 
 
-## Topic 4: 1 - (190)
+## Topic 4: 1 - 37  (190 - 226)
 
 
 
@@ -1743,6 +1757,186 @@ flowchart LR
   - D
 - 13
   - CD
+  - 考点: datime datatype做sorting和indexing没有primitive data type like integer快; 在data warehouse的common practice
+- 14
+  - C
+- 15
+  - BC❌
+  - BD
+
+两个概念:
+
+- `Cache hit percentage`= cache hits/cache miss * 100 
+- `Cache use percentage`= cache used/cache miss * 100 
+
+- 16
+  - B
+- 17
+  - A (cluster)
+- 18
+  - D
+- 19
+  - B
+- 20
+  - D[Guidance for designing distributed tables using dedicated sql pool in Synapse](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql-data-warehouse/sql-data-warehouse-tables-distribute)
+- 21
+  - B
+- 22
+  - Succeed, succeeded ❌ fail
+- 23
+  - DE
+- 24
+  - D
+- 25
+  - B
+- 26
+  - D
+- 27
+  - B
+- 28
+  - C
+- 29
+  - DWU❌ A (DWU used)
+- 30
+  - c
+- 31
+  - Number of partitions: 32 ❌
+  - Partition key: Fraud score ❌ transacation ID
+  - [Leverage query parallelization in Azure Stream Analytics](https://learn.microsoft.com/en-us/azure/stream-analytics/stream-analytics-parallelization)
+
+- 32
+  - Sales: hash, product key
+  - Invoices: hash, regionkey
+
+- 33:
+
+  - Partition elimination概念: B
+
+- 34
+
+  - BD
+
+- 35
+
+  - D
+
+- 36
+
+  - A
+
+- 37
+
+  - AE (ADLD query acceleration udemy上讲过)
+  - 步骤:
+    - 1. register a provider via power shell
+
+- [ADLS query acceleration](https://learn.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-query-acceleration) accepts **filtering predicates and column projections** which enable applications to filter rows and columns at the time that is read from disk. 等于就是数据在被传输到网络之前，就被filter了
+
+  ![](https://learn.microsoft.com/en-us/azure/storage/blobs/media/data-lake-storage-query-acceleration/query-acceleration.png)
+
+  
+
+
+
+## Topic 5-8 Case Study: 227 - 247
+
+这一章开始是case study了
+
+### Topic 5 Contoco
+
+- 1:
+  - Hash
+  - Set the distribution column to product ID
+- 2
+  - 我的答案:
+    - Create Database Scoped Credential
+    - Create external data source
+    - Create external file format
+    - Create external table
+  - 既然只能选三个的话那就后三个，data source ,file format, external table
+- 3
+  - 分析: sales transaction dataset要求如下:
+    - partition data tha contains sales transacation records. Partitions must be designed to provide efficient loads by month. **Boundary values must belong partition to the right**
+    - Ensure that queries joining and filtering sales transacation records based on **product ID** as quickly as possible.
+    - Implement a surrogate key to account for changes to the retail store addresses.
+  - 我的答案:
+    - Product ID ❌ 
+    - dedicated SQL pool
+  - 正确答案: Sales_date, dedicated SQL pool
+  - 分析:
+    - distribution = ProductID (distribution can't use date), Partition = Sales_date
+- 4
+  - A (identity property)
+- 5
+  - 我的答案: replicated, hash
+- 6
+  - Create external table (❌), `RANGE RIGHT FOR VALUES`
+  - 正确答案: `create table`,  `RANGE RIGHT FOR VALUES`
+  - 分析:
+    - external table is only useful for create table located in other storage such as ALDS or hadoop or blob storage. 如果你数据就存在synpase dedicated SQL pool中，create就可以了
+
+- 7
+  - time-based retention❌ lifecycle management
+
+
+
+知识总结:
+
+- 分清楚distribution (never on date column) and partition (可以on date column) 
+
+- External table 是指data stored in place other than synapse (hadoop, adls, blob)，如果数据就在synapse中，那就`create table`即可
+
+### Topic 6 Litware
+
+Litware inc case study
+
+- 1:
+  - Azure integration runtime
+  - Tumbling window trigger
+  - Copy
+
+
+
+
+
+### Topic 7 Contoso again!
+
+- 1
+  - create a repository and a main branch
+  - Create a feature branch
+  - Create a pull request
+  - merge changes
+  - publish changes
+
+
+
+### Topic 8
+
+- 1
+  - Configure Event Hubs partitions
+  - ADLS
+
+
+
+### Topic 9 Litware again
+
+- 1
+  - C: server-level firewall 
+- 2
+  - C
+
+
+
+### Topic 10
+
+- 1
+  - D
+
+
+
+Congrats! This is the end of it!
+
+---
 
 
 
